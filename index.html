@@ -1,0 +1,3049 @@
+
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    const KO_TO_HIRA_MAP = {
+      '아':'あ','이':'い','우':'う','에':'え','오':'お',
+      '카':'か','키':'き','쿠':'く','케':'け','코':'こ',
+      '가':'が','기':'ぎ','구':'ぐ','게':'げ','고':'ご',
+      '사':'さ','시':'し','스':'す','세':'せ','소':'そ',
+      '자':'ざ','지':'じ','즈':'ず','제':'ぜ','조':'ぞ',
+      '타':'た','치':'ち','츠':'つ','테':'て','토':'と',
+      '다':'だ','데':'で','도':'ど',
+      '나':'な','니':'に','누':'ぬ','네':'ね','노':'の',
+      '하':'は','히':'ひ','후':'ふ','헤':'へ','호':'ほ',
+      '바':'ば','비':'び','부':'ぶ','베':'べ','보':'ぼ',
+      '파':'ぱ','피':'ぴ','푸':'ぷ','페':'ぺ','포':'ぽ',
+      '마':'ま','미':'み','무':'む','메':'め','모':'も',
+      '야':'や','유':'ゆ','요':'よ',
+      '라':'ら','리':'り','루':'る','레':'れ','로':'ろ',
+      '와':'わ','응':'ん',
+      '캬':'きゃ','큐':'きゅ','쿄':'きょ',
+      '샤':'しゃ','슈':'しゅ','쇼':'しょ',
+      '차':'ちゃ','츄':'ちゅ','쵸':'ちょ','춋':'ちょっ',
+      '냐':'にゃ','뉴':'にゅ','뇨':'にょ',
+      '햐':'ひゃ','휴':'ひゅ','효':'ひょ',
+      '먀':'みゃ','뮤':'みゅ','묘':'みょ',
+      '랴':'りゃ','류':'りゅ','료':'りょ',
+      '갸':'ぎゃ','규':'ぎゅ','교':'ぎょ',
+      '쟈':'じゃ','쥬':'じゅ','죠':'じょ','주':'じゅ',
+      '뱌':'びゃ','뷰':'びゅ','뵤':'びょ',
+      '쿤':'くん','칸':'かん','캇':'かっ','붓':'ぶっ','못':'もっ','닷':'だっ','앗':'あっ'
+    };
+
+    function autoHiraganaFromPron(orig, pron) {
+      if (orig && !/[\u4e00-\u9faf]/.test(orig)) return orig;
+      if (!pron) return orig || '';
+      return Array.from(pron).map(ch => {
+        if (ch === ' ') return ' ';
+        return KO_TO_HIRA_MAP[ch] || ch;
+      }).join('');
+    }
+
+    const INITIAL_SONGS = [
+      {
+        id: 'mga-darling',
+        category: 'J-POP',
+        title: 'ダーリン (달링 / Darling)',
+        artist: 'Mrs. GREEN APPLE (미세스 그린 애플)',
+        keyInfo: 'Ab Major · TJ 52793 / KY 57823',
+        bpm: 145,
+        pitchFreq: 415.30,
+        pitchName: 'Ab4 (라b)',
+        favorite: true,
+        practicing: true,
+        vocalTip: '도입부는 담담한 독백처럼 부드럽게 시작하고, 후렴 "darling 보쿠노 세나카니"에서 넓은 공명과 복식호흡(∨∨)으로 감정을 터뜨려 주세요.',
+        memo: 'NHK 18제(18Fes) 테마곡. 진성과 가성 전환 구간에서 목에 힘이 들어가지 않게 호흡으로 받쳐주기!',
+        stanzas: [
+          {
+            orig: '負けない何かが欲しい “私”だけの愛が欲しい',
+            furi: 'まけない なにかが ほしい わたしだけの あいが ほしい',
+            ruby: '<ruby>負<rt>ま</rt></ruby>けない<ruby>何<rt>なに</rt></ruby>かが<ruby>欲<rt>ほ</rt></ruby>しい “<ruby>私<rt>わたし</rt></ruby>”だけの<ruby>愛<rt>あい</rt></ruby>が<ruby>欲<rt>ほ</rt></ruby>しい',
+            pron: '마케나이 나니카가 호시이 와타시다케노 아이가 호시이',
+            trans: '지지 않는 무언가가 필요해 “나”만의 사랑을 원해'
+          },
+          {
+            orig: 'そうすればきっと僕らは 比べないで居れる',
+            furi: 'そう すれば きっと ぼくらは くらべないで いれる',
+            ruby: 'そうすればきっと<ruby>僕<rt>ぼく</rt></ruby>らは <ruby>比<rt>くら</rt></ruby>べないで<ruby>居<rt>い</rt></ruby>れる',
+            pron: '소- 스레바 킷토 보쿠라와 쿠라베나이데 이레루',
+            trans: '그렇게 하면 분명 우리는 비교하지 않아도 될 거야'
+          },
+          {
+            orig: 'あれこれ理由が欲しい “私”だけ独りのような',
+            furi: 'あれこれ りゆうが ほしい わたしだけ ひとりのような',
+            ruby: 'あれこれ<ruby>理由<rt>りゆう</rt></ruby>が<ruby>欲<rt>ほ</rt></ruby>しい “<ruby>私<rt>わたし</rt></ruby>”だけ<ruby>独<rt>ひと</rt></ruby>りのような',
+            pron: '아레코레 리유-가 호시이 와타시다케 히토리노요-나',
+            trans: '이런저런 이유가 필요해 “나”만이 혼자인 것 같은'
+          },
+          {
+            orig: '寂しい夜には 何に抱きつけばいい？',
+            furi: 'さみしい よるには なにに だきつけば いい？',
+            ruby: '<ruby>寂<rt>さみ</rt></ruby>しい<ruby>夜<rt>よる</rt></ruby>には <ruby>何<rt>なに</rt></ruby>に<ruby>抱<rt>だ</rt></ruby>きつけばいい？',
+            pron: '사미시이 요루니와 나니니 다키츠케바 이이',
+            trans: '외로운 밤에는 무엇을 끌어안아야 할까?'
+          },
+          {
+            orig: '羨ましい ただ虚しい',
+            furi: 'うらやましい ただ むなしい',
+            ruby: '<ruby>羨<rt>うらや</rt></ruby>ましい ただ<ruby>虚<rt>むな</rt></ruby>しい',
+            pron: '우라야마시이 타다 무나시이',
+            trans: '부러움은 그저 공허할 뿐'
+          },
+          {
+            orig: '嫌われたくもないけど 自分を好きで居たい',
+            furi: 'きらわれたくも ないけど じぶんを すきで いたい',
+            ruby: '<ruby>嫌<rt>きら</rt></ruby>われたくもないけど <ruby>自分<rt>じぶん</rt></ruby>を<ruby>好<rt>す</rt></ruby>きで<ruby>居<rt>い</rt></ruby>たい',
+            pron: '키라와레타쿠모 나이케도 지분오 스키데 이타이',
+            trans: '미움받고 싶지도 않지만 나 자신을 좋아하고 싶어'
+          },
+          {
+            orig: 'darling 僕の背中に乗って泳いでて',
+            furi: 'だーりん ぼくの せなかに のって およいでて',
+            ruby: 'darling <ruby>僕<rt>ぼく</rt></ruby>の<ruby>背中<rt>せなか</rt></ruby>に<ruby>乗<rt>の</rt></ruby>って<ruby>泳<rt>およ</rt></ruby>いでて',
+            pron: 'darling 보쿠노 세나카니 놋테 오요이데테',
+            trans: 'darling 내 등에 올라타서 헤엄쳐 줘'
+          },
+          {
+            orig: 'やるせない日々の海はとても深いから',
+            furi: 'やるせない ひびの うみは とても ふかいから',
+            ruby: 'やるせない<ruby>日々<rt>ひび</rt></ruby>の<ruby>海<rt>うみ</rt></ruby>はとても<ruby>深<rt>ふか</rt></ruby>いから',
+            pron: '야루세나이 히비노 우미와 토테모 후카이카라',
+            trans: '속절없는 나날의 바다는 너무나 깊으니까'
+          },
+          {
+            orig: '「誰かの私でありたかった」 勘違いしちゃうから',
+            furi: 'だれかの わたしで ありたかった かんちがい しちゃうから',
+            ruby: '「<ruby>誰<rt>だれ</rt></ruby>かの<ruby>私<rt>わたし</rt></ruby>でありたかった」 <ruby>勘違<rt>かんちが</rt></ruby>いしちゃうから',
+            pron: '다레카노 와타시데 아리타캇타 칸치가이시챠우카라',
+            trans: '「누군가의 내가 되고 싶었어」 착각하게 되니까'
+          },
+          {
+            orig: 'ひとりにしないでよね。',
+            furi: 'ひとりに しないでよね',
+            ruby: 'ひとりにしないでよね。',
+            pron: '히토리니 시나이데요네',
+            trans: '나를 혼자 두지 말아 줘.'
+          },
+          {
+            orig: 'darling 本当の音を聴いて',
+            furi: 'だーりん ほんとうの おとを きいて',
+            ruby: 'darling <ruby>本当<rt>ほんとう</rt></ruby>の<ruby>音<rt>おと</rt></ruby>を<ruby>聴<rt>き</rt></ruby>いて',
+            pron: 'darling 혼토-노 오토오 키이테',
+            trans: 'darling 진정한 소리를 들어 봐'
+          },
+          {
+            orig: 'ねぇ 私の私で居てもいいの？',
+            furi: 'ねえ わたしの わたしで いても いいの？',
+            ruby: 'ねぇ <ruby>私<rt>わたし</rt></ruby>の<ruby>私<rt>わたし</rt></ruby>で<ruby>居<rt>い</rt></ruby>てもいいの？',
+            pron: '네- 와타시노 와타시데 이테모 이이노',
+            trans: '있잖아 나를 위한 나 자신이어도 괜찮아?'
+          },
+          {
+            orig: 'あの子にはなれないし なる必要も無いから darling',
+            furi: 'あの こには なれないし なる ひつようも ないから だーりん',
+            ruby: 'あの<ruby>子<rt>こ</rt></ruby>にはなれないし なる<ruby>必要<rt>ひつよう</rt></ruby>も<ruby>無<rt>な</rt></ruby>いから darling',
+            pron: '아노 코니와 나레나이시 나루 히츠요-모 나이카라 darling',
+            trans: '그 아이가 될 수 있는 것도 아니고 될 필요도 없으니까 darling'
+          }
+        ],
+        annotations: {
+          breaths: { '0-pron-11': 'v', '5-pron-11': 'deep', '6-pron-7': 'v' },
+          highlights: { '6-orig-0': 'yellow', '6-orig-1': 'yellow', '6-orig-2': 'yellow', '6-orig-3': 'yellow', '6-orig-4': 'yellow', '6-orig-5': 'yellow', '6-orig-6': 'yellow' },
+          vocalTags: { '6-orig-8': '⚡벨팅' },
+          strokes: []
+        }
+      },
+      {
+        id: 'mga-inferno',
+        category: 'J-POP',
+        title: 'インフェルノ (인페르노 / Inferno)',
+        artist: 'Mrs. GREEN APPLE (미세스 그린 애플)',
+        keyInfo: 'G Minor · TJ 68095 / KY 44455',
+        bpm: 185,
+        pitchFreq: 392.00,
+        pitchName: 'G4 (솔)',
+        favorite: true,
+        practicing: true,
+        vocalTip: '불꽃 소방대 OP 곡으로 템포가 매우 빠릅니다(185 BPM). "호무라가 타츠" 직전 짧고 강한 호흡(∨)과 날카로운 록 벨팅 어택을 유지하세요.',
+        memo: '후렴 "에이엔와 나인다토 나인다토 유우" 고음 롱톤에서 배 힘 풀리지 않게 주의!',
+        stanzas: [
+          {
+            orig: '照らすは闇 僕らは歩き慣れてきた日々も淘汰',
+            furi: 'てらすは やみ ぼくらは あるきなれてきた ひびも とうた',
+            ruby: '<ruby>照<rt>て</rt></ruby>らすは<ruby>闇<rt>やみ</rt></ruby> <ruby>僕<rt>ぼく</rt></ruby>らは<ruby>歩<rt>ある</rt></ruby>き<ruby>慣<rt>な</rt></ruby>れてきた<ruby>日々<rt>ひび</rt></ruby>も<ruby>淘汰<rt>とうた</rt></ruby>',
+            pron: '테라스와 야미 보쿠라와 아루키나레테키타 히비모 토-타',
+            trans: '비추는 건 어둠, 우린 걸어 익숙해진 날들마저 도태됐어'
+          },
+          {
+            orig: '夢は安泰な暮らしだが 刺激不足故にタラタラ',
+            furi: 'ゆめは あんたいな くらしだが しげきぶそく ゆえに たらたら',
+            ruby: '<ruby>夢<rt>ゆめ</rt></ruby>は<ruby>安泰<rt>あんたい</rt></ruby>な<ruby>暮<rt>く</rt></ruby>らしだが <ruby>刺激不足故<rt>しげきぶそくゆえ</rt></ruby>にタラタラ',
+            pron: '유메와 안타이나 쿠라시다가 시게키 부소쿠 유에니 타라타라',
+            trans: '꿈은 평온한 삶이지만 자극이 부족한 탓에 늘어지네'
+          },
+          {
+            orig: '照らすは熄み 僕らの歩き慣れていた道はどこだ',
+            furi: 'てらすは やみ ぼくらの あるきなれていた みちは どこだ',
+            ruby: '<ruby>照<rt>て</rt></ruby>らすは<ruby>熄<rt>や</rt></ruby>み <ruby>僕<rt>ぼく</rt></ruby>らの<ruby>歩<rt>ある</rt></ruby>き<ruby>慣<rt>な</rt></ruby>れていた<ruby>道<rt>みち</rt></ruby>はどこだ',
+            pron: '테라스와 야미 보쿠라노 아루키나레테이타 미치와 도코다',
+            trans: '비추는 건 사그라짐, 우리가 익숙하게 걷던 길은 어디인가'
+          },
+          {
+            orig: '時はたまに癪だが 温もりに包まれ只',
+            furi: 'ときは たまに しゃくだが ぬくもりに つつまれ ただ',
+            ruby: '<ruby>時<rt>とき</rt></ruby>はたまに<ruby>癪<rt>しゃく</rt></ruby>だが <ruby>温<rt>ぬく</rt></ruby>もりに<ruby>包<rt>つつ</rt></ruby>まれ<ruby>只<rt>ただ</rt></ruby>',
+            pron: '토키와 타마니 샤쿠다가 누쿠모리니 츠츠마레 타다',
+            trans: '시간은 때로는 약오르지만 따스함에 둘러싸여 그저'
+          },
+          {
+            orig: '炎が立つ 導の方へ',
+            furi: 'ほむらが たつ しるべの ほうへ',
+            ruby: '<ruby>炎<rt>ほむら</rt></ruby>が<ruby>立<rt>た</rt></ruby>つ <ruby>導<rt>しるべ</rt></ruby>の<ruby>方<rt>ほう</rt></ruby>へ',
+            pron: '호무라가 타츠 시루베노 호-에',
+            trans: '불꽃이 일며 이끄는 곳으로'
+          },
+          {
+            orig: '思い出すは優しいメロディー',
+            furi: 'おもいだすは やさしい めろでぃー',
+            ruby: '<ruby>思<rt>おも</rt></ruby>い<ruby>出<rt>だ</rt></ruby>すは<ruby>優<rt>やさ</rt></ruby>しいメロディー',
+            pron: '오모이다스와 야사시이 메로디-',
+            trans: '떠오르는 건 부드러운 멜로디'
+          },
+          {
+            orig: '永遠は無いんだと 無いんだと云フ',
+            furi: 'えいえんは ないんだと ないんだと いう',
+            ruby: '<ruby>永遠<rt>えいえん</rt></ruby>は<ruby>無<rt>な</rt></ruby>いんだと <ruby>無<rt>な</rt></ruby>いんだと<ruby>云<rt>い</rt></ruby>フ',
+            pron: '에이엔와 나인다토 나인다토 유우',
+            trans: '영원은 없다고 없는 거라고 말해'
+          },
+          {
+            orig: 'それもまたイイねと笑ってみる',
+            furi: 'それも また いいねと わらってみる',
+            ruby: 'それもまたイイねと<ruby>笑<rt>わら</rt></ruby>ってみる',
+            pron: '소레모 마타 이이네토 와랏테미루',
+            trans: '그것도 또 괜찮다며 웃어 보네'
+          },
+          {
+            orig: '輝けばいつかは光も絶える',
+            furi: 'かがやけば いつかは ひかりも たえる',
+            ruby: '<ruby>輝<rt>かがや</rt></ruby>けばいつかは<ruby>光<rt>ひかり</rt></ruby>も<ruby>絶<rt>た</rt></ruby>える',
+            pron: '카가야케바 이츠카와 히카리모 타에루',
+            trans: '빛나면 언젠가는 그 빛도 꺼지는 법'
+          },
+          {
+            orig: '僕らは命の火が消えるその日まで歩いてゆく',
+            furi: 'ぼくらは いのちの ひが きえる その ひまで あるいてゆく',
+            ruby: '<ruby>僕<rt>ぼく</rt></ruby>らは<ruby>命<rt>いのち</rt></ruby>の<ruby>火<rt>ひ</rt></ruby>が<ruby>消<rt>き</rt></ruby>えるその<ruby>日<rt>ひ</rt></ruby>まで<ruby>歩<rt>ある</rt></ruby>いてゆく',
+            pron: '보쿠라와 이노치노 히가 키에루 소노 히마데 아루이테유쿠',
+            trans: '우린 생명의 불이 꺼지는 그날까지 걸어가네'
+          }
+        ],
+        annotations: {
+          breaths: { '0-pron-5': 'cut', '4-pron-5': 'v', '6-pron-8': 'deep' },
+          highlights: { '4-orig-0': 'pink', '4-orig-1': 'pink', '4-orig-2': 'pink', '4-orig-3': 'pink' },
+          vocalTags: { '6-orig-0': '⚡벨팅' },
+          strokes: []
+        }
+      },
+      {
+        id: 'mga-lulu',
+        category: 'J-POP',
+        title: 'lulu. (루루)',
+        artist: 'Mrs. GREEN APPLE (미세스 그린 애플)',
+        keyInfo: 'E Major · 장송의 프리렌 2기 OP · TJ 52440',
+        bpm: 118,
+        pitchFreq: 329.63,
+        pitchName: 'E4 (미)',
+        favorite: true,
+        practicing: true,
+        vocalTip: '장송의 프리렌 2기 오프닝 곡입니다. 서정적인 도입부 가성과 "히토미노 우라니 이츠모 키미와 이루"의 따뜻한 공명 대비를 살려 부르세요.',
+        memo: '"도코니모 이카나이요 / 도코니모 이케나이요" 부분은 속삭이듯 여리게(🔉) 호흡을 실어 표현하기.',
+        stanzas: [
+          {
+            orig: '終わりが来たら なんて言おう',
+            furi: 'おわりが きたら なんて いおう',
+            ruby: '<ruby>終<rt>お</rt></ruby>わりが<ruby>来<rt>き</rt></ruby>たら なんて<ruby>言<rt>い</rt></ruby>おう',
+            pron: '오와리가 키타라 난테 이오-',
+            trans: '끝이 오게 되면 뭐라고 해야 할까'
+          },
+          {
+            orig: 'どうせなら ほら 哀しくない様に',
+            furi: 'どうせなら ほら かなしくない ように',
+            ruby: 'どうせなら ほら <ruby>哀<rt>かな</rt></ruby>しくない<ruby>様<rt>よう</rt></ruby>に',
+            pron: '도-세나라 호라 카나시쿠 나이 요-니',
+            trans: '이왕이면 말이야 슬프지 않게끔'
+          },
+          {
+            orig: 'いつかのあなたの言葉が 酷く刺さってる',
+            furi: 'いつかの あなたの ことばが ひどく ささってる',
+            ruby: 'いつかのあなたの<ruby>言葉<rt>ことば</rt></ruby>が <ruby>酷<rt>ひど</rt></ruby>く<ruby>刺<rt>さ</rt></ruby>さってる',
+            pron: '이츠카노 아나타노 코토바가 히도쿠 사삿테루',
+            trans: '언젠가 네가 건넨 말이 뼈아프게 박혀 있어'
+          },
+          {
+            orig: '温かく残ってる 知れば知るだけでいいのに',
+            furi: 'あたたかく のこってる しれば しるだけで いいのに',
+            ruby: '<ruby>温<rt>あたた</rt></ruby>かく<ruby>残<rt>のこ</rt></ruby>ってる <ruby>知<rt>し</rt></ruby>れば<ruby>知<rt>し</rt></ruby>るだけでいいのに',
+            pron: '아타타카쿠 노콧테루 시레바 시루다케데 이이노니',
+            trans: '따스하게 남아 있어 그냥 알기만 하면 될 텐데'
+          },
+          {
+            orig: '何かを求めてしまう 大丈夫',
+            furi: 'なにかを もとめて しまう だいじょうぶ',
+            ruby: '<ruby>何<rt>なに</rt></ruby>かを<ruby>求<rt>もと</rt></ruby>めてしまう <ruby>大丈夫<rt>だいじょうぶ</rt></ruby>',
+            pron: '나니카오 모토메테 시마우 다이죠-부',
+            trans: '자꾸 무언가를 바라게 돼, 괜찮아'
+          },
+          {
+            orig: 'どこにも行かないよ どこにも行けないよ。 ね。',
+            furi: 'どこにも いかないよ どこにも いけないよ ね',
+            ruby: 'どこにも<ruby>行<rt>い</rt></ruby>かないよ どこにも<ruby>行<rt>い</rt></ruby>けないよ。 ね。',
+            pron: '도코니모 이카나이요 도코니모 이케나이요 네',
+            trans: '어디에도 안 가, 어디에도 못 가. 응.'
+          },
+          {
+            orig: '探してるもの見つかったら 何かが途切れちゃいそう',
+            furi: 'さがしてる もの みつかったら なにかが とぎれちゃいそう',
+            ruby: '<ruby>探<rt>さが</rt></ruby>してるもの<ruby>見<rt>み</rt></ruby>つかったら <ruby>何<rt>なに</rt></ruby>かが<ruby>途切<rt>とぎ</rt></ruby>れちゃいそう',
+            pron: '사가시테루 모노 미츠캇타라 나니카가 토기레챠이소-',
+            trans: '찾고 있던 걸 찾게 된다면 무언가가 끊어져 버릴 것 같아'
+          },
+          {
+            orig: 'ただ鼻歌に隠し ラララ 続く日めくりカレンダー',
+            furi: 'ただ はなうたに かくし ららら つづく ひめくり かれんだー',
+            ruby: 'ただ<ruby>鼻歌<rt>はなうた</rt></ruby>に<ruby>隠<rt>かく</rt></ruby>し ラララ <ruby>続<rt>つづ</rt></ruby>く<ruby>日<rt>ひ</rt></ruby>めくりカレンダー',
+            pron: '타다 하나우타니 카쿠시 라라라 츠즈쿠 히메쿠리 카렌다-',
+            trans: '그냥 콧노래로 감추며 라라라 계속되는 하루하루 캘린더'
+          },
+          {
+            orig: '忘れないのに 何故か遠くなる',
+            furi: 'わすれないのに なぜか とおく なる',
+            ruby: '<ruby>忘<rt>わす</rt></ruby>れないのに <ruby>何故<rt>なぜ</rt></ruby>か<ruby>遠<rt>とお</rt></ruby>くなる',
+            pron: '와스레나이노니 나제카 토오쿠 나루',
+            trans: '잊지 않는데도 왜인지 멀어져만 가'
+          },
+          {
+            orig: '瞳の裏にいつも君は居る 今も ずっとそう',
+            furi: 'ひとみの うらに いつも きみは いる いまも ずっと そう',
+            ruby: '<ruby>瞳<rt>ひとみ</rt></ruby>の<ruby>裏<rt>うら</rt></ruby>にいつも<ruby>君<rt>きみ</rt></ruby>は<ruby>居<rt>い</rt></ruby>る <ruby>今<rt>いま</rt></ruby>も ずっとそう',
+            pron: '히토미노 우라니 이츠모 키미와 이루 이마모 즛토 소-',
+            trans: '눈 안쪽에는 항상 네가 있어 지금도 여전히 그래'
+          },
+          {
+            orig: '世界に優しい風が吹いたら 何か変わるのでしょうか',
+            furi: 'せかいに やさしい かぜが ふいたら なにか かわるのでしょうか',
+            ruby: '<ruby>世界<rt>せかい</rt></ruby>に<ruby>優<rt>やさ</rt></ruby>しい<ruby>風<rt>かぜ</rt></ruby>が<ruby>吹<rt>ふ</rt></ruby>いたら <ruby>何<rt>なに</rt></ruby>か<ruby>変<rt>か</rt></ruby>わるのでしょうか',
+            pron: '세카이니 야사시이 카제가 후이타라 나니카 카와루노데쇼-카',
+            trans: '세상에 따뜻한 바람이 분다면 무언가 달라지려나'
+          },
+          {
+            orig: '「帰りたい場所がある」 誰もがこの星の子孫',
+            furi: 'かえりたい ばしょが ある だれもが この ほしの しそん',
+            ruby: '「<ruby>帰<rt>かえ</rt></ruby>りたい<ruby>場所<rt>ばしょ</rt></ruby>がある」 <ruby>誰<rt>だれ</rt></ruby>もがこの<ruby>星<rt>ほし</rt></ruby>の<ruby>子孫<rt>しそん</rt></ruby>',
+            pron: '카에리타이 바쇼가 아루 다레모가 코노 호시노 시손',
+            trans: '「돌아가고 싶은 곳이 있어」 우리 모두 이 별의 자손이니까'
+          }
+        ],
+        annotations: {
+          breaths: { '0-pron-7': 'v', '5-pron-9': 'cut', '9-pron-15': 'deep' },
+          highlights: { '9-orig-0': 'mint', '9-orig-1': 'mint', '9-orig-2': 'mint', '9-orig-3': 'mint' },
+          vocalTags: { '5-orig-0': '🔉작게', '9-orig-0': '↗가성' },
+          strokes: []
+        }
+      },
+      {
+        id: 'mga-bokunokoto',
+        category: 'J-POP',
+        title: '僕のこと (보쿠노코토 / 나라는 것)',
+        artist: 'Mrs. GREEN APPLE (미세스 그린 애플)',
+        keyInfo: 'Ab Major · 최고음 3옥타브 미(E5)',
+        bpm: 78,
+        pitchFreq: 415.30,
+        pitchName: 'Ab4 (라b)',
+        favorite: true,
+        practicing: true,
+        vocalTip: '웅장한 오케스트라 록 발라드입니다. 후렴 "아- 난테 스테키나 히다"의 초고음 가성(↗)과 진성 전환을 매끄럽게 연결하세요.',
+        memo: '"키세키(奇跡/軌跡)" 발음할 때 자음을 또렷하게 짚어주고, 후렴 진입 전 깊은 복식호흡(∨∨) 필수!',
+        stanzas: [
+          {
+            orig: '僕と君とでは何が違う？ おんなじ生き物さ 分かってる',
+            furi: 'ぼくと きみとでは なにが ちがう？ おんなじ いきものさ わかってる',
+            ruby: '<ruby>僕<rt>ぼく</rt></ruby>と<ruby>君<rt>きみ</rt></ruby>とでは<ruby>何<rt>なに</rt></ruby>が<ruby>違<rt>ちが</rt></ruby>う？ おんなじ<ruby>生<rt>い</rt></ruby>き<ruby>物<rt>もの</rt></ruby>さ <ruby>分<rt>わ</rt></ruby>かってる',
+            pron: '보쿠토 키미토데와 나니가 치가우 온나지 이키모노사 와캇테루',
+            trans: '나와 너의 다른 점은 뭐야? 같은 생물이잖아 알고 있어'
+          },
+          {
+            orig: 'でもね、僕は何かに怯えている みんなもそうならいいな',
+            furi: 'でもね ぼくは なにかに おびえている みんなも そうなら いいな',
+            ruby: 'でもね、<ruby>僕<rt>ぼく</rt></ruby>は<ruby>何<rt>なに</rt></ruby>かに<ruby>怯<rt>おび</rt></ruby>えている みんなもそうならいいな',
+            pron: '데모네 보쿠와 나니카니 오비에테이루 민나모 소-나라 이이나',
+            trans: '그래도 있잖아, 나는 무언가를 두려워하고 있어 모두 그랬으면 좋겠네'
+          },
+          {
+            orig: 'がむしゃらに生きて誰が笑う？ 悲しみきるには早すぎる',
+            furi: 'がむしゃらに いきて だれが わらう？ かなしみきるには はやすぎる',
+            ruby: 'がむしゃらに<ruby>生<rt>い</rt></ruby>きて<ruby>誰<rt>だれ</rt></ruby>が<ruby>笑<rt>わら</rt></ruby>う？ <ruby>悲<rt>かな</rt></ruby>しみきるには<ruby>早<rt>はや</rt></ruby>すぎる',
+            pron: '가무샤라니 이키테 다레가 와라우 카나시미키루니와 하야스기루',
+            trans: '무턱대고 살아와서 누가 웃을까? 슬퍼하기에는 너무 일러'
+          },
+          {
+            orig: 'いつも僕は自分に言い聞かせる 明日もあるしね。',
+            furi: 'いつも ぼくは じぶんに いいきかせる あしたも あるしね',
+            ruby: 'いつも<ruby>僕<rt>ぼく</rt></ruby>は<ruby>自分<rt>じぶん</rt></ruby>に<ruby>言<rt>い</rt></ruby>い<ruby>聞<rt>き</rt></ruby>かせる <ruby>明日<rt>あした</rt></ruby>もあるしね。',
+            pron: '이츠모 보쿠와 지분니 이이키카세루 아시타모 아루시네',
+            trans: '항상 나는 나에게 되새겨주지 내일도 있잖아.'
+          },
+          {
+            orig: 'ああ なんて素敵な日だ 幸せと思える今日も',
+            furi: 'ああ なんて すてきな ひだ しあわせと おもえる きょうも',
+            ruby: 'ああ なんて<ruby>素敵<rt>すてき</rt></ruby>な<ruby>日<rt>ひ</rt></ruby>だ <ruby>幸<rt>しあわ</rt></ruby>せと<ruby>思<rt>おも</rt></ruby>える<ruby>今日<rt>きょう</rt></ruby>も',
+            pron: '아- 난테 스테키나 히다 시아와세토 오모에루 쿄-모',
+            trans: '아- 얼마나 멋진 날인가 행복하다고 생각할 수 있는 오늘도'
+          },
+          {
+            orig: '夢敗れ挫ける今日も ああ 諦めず足宛いている',
+            furi: 'ゆめやぶれ くじける きょうも ああ あきらめず もがいている',
+            ruby: '<ruby>夢敗<rt>ゆめやぶ</rt></ruby>れ<ruby>挫<rt>くじ</rt></ruby>ける<ruby>今日<rt>きょう</rt></ruby>も ああ <ruby>諦<rt>あきら</rt></ruby>めず<ruby>足宛<rt>もが</rt></ruby>いている',
+            pron: '유메야부레 쿠지케루 쿄-모 아- 아키라메즈 모가이테이루',
+            trans: '꿈이 무너져 좌절하는 오늘도 아- 포기하지 않고 발버둥치고 있어'
+          },
+          {
+            orig: '狭い広い世界で 奇跡を唄う',
+            furi: 'せまい ひろい せかいで きせきを うたう',
+            ruby: '<ruby>狭<rt>せま</rt></ruby>い<ruby>広<rt>ひろ</rt></ruby>い<ruby>世界<rt>せかい</rt></ruby>で <ruby>奇跡<rt>きせき</rt></ruby>を<ruby>唄<rt>うた</rt></ruby>う',
+            pron: '세마이 히로이 세카이데 키세키오 우타우',
+            trans: '좁고 넓은 세상에서 기적을 노래해'
+          },
+          {
+            orig: '僕らは知っている 空への飛び方も',
+            furi: 'ぼくらは しっている そらへの とびかたも',
+            ruby: '<ruby>僕<rt>ぼく</rt></ruby>らは<ruby>知<rt>し</rt></ruby>っている <ruby>空<rt>そら</rt></ruby>への<ruby>飛<rt>と</rt></ruby>び<ruby>方<rt>かた</rt></ruby>も',
+            pron: '보쿠라와 싯테이루 소라에노 토비카타모',
+            trans: '우리들은 알고 있어 하늘을 나는 법도'
+          },
+          {
+            orig: '大人になるにつれ忘れる 限りある永遠も',
+            furi: 'おとなに なるにつれ わすれる かぎりある えいえんも',
+            ruby: '<ruby>大人<rt>おとな</rt></ruby>になるにつれ<ruby>忘<rt>わす</rt></ruby>れる <ruby>限<rt>かぎ</rt></ruby>りある<ruby>永遠<rt>えいえん</rt></ruby>も',
+            pron: '오토나니 나루니츠레 와스레루 카기리아루 에이엔모',
+            trans: '어른이 되어감에 따라 잊어버리는 끝이 있는 영원함도'
+          },
+          {
+            orig: '治りきらない傷も 全て僕のこと 今日という僕のこと',
+            furi: 'なおりきらない きずも すべて ぼくのこと きょうという ぼくのこと',
+            ruby: '<ruby>治<rt>なお</rt></ruby>りきらない<ruby>傷<rt>きず</rt></ruby>も <ruby>全<rt>すべ</rt></ruby>て<ruby>僕<rt>ぼく</rt></ruby>のこと <ruby>今日<rt>きょう</rt></ruby>という<ruby>僕<rt>ぼく</rt></ruby>のこと',
+            pron: '나오리키라나이 키즈모 스베테 보쿠노코토 쿄-토이우 보쿠노코토',
+            trans: '아물지 않는 상처도 이 전부가 나라는 것, 오늘이라는 나라는 것'
+          }
+        ],
+        annotations: {
+          breaths: { '0-pron-13': 'v', '3-pron-15': 'deep', '4-pron-11': 'v' },
+          highlights: { '4-orig-0': 'sky', '4-orig-1': 'sky', '4-orig-3': 'sky', '4-orig-4': 'sky', '4-orig-5': 'sky', '4-orig-6': 'sky', '4-orig-7': 'sky' },
+          vocalTags: { '4-orig-3': '↗가성', '6-orig-8': '★강세' },
+          strokes: []
+        }
+      },
+      {
+        id: 'mga-lilac',
+        category: 'J-POP',
+        title: 'ライラック (라일락 / Lilac)',
+        artist: 'Mrs. GREEN APPLE (미세스 그린 애플)',
+        keyInfo: 'Bb Major · 망각 배터리 OP · TJ 68461 / KY 75996',
+        bpm: 150,
+        pitchFreq: 233.08,
+        pitchName: 'Bb3 (시b)',
+        favorite: true,
+        practicing: true,
+        vocalTip: '빠른 기타 리프 위에서 리드미컬하게 단어를 튕겨 부르고, "아오니 니타 슷파이 하루토 라이랏쿠"에서 청량한 두성 공명을 살려주세요.',
+        memo: '처음 캡처 이미지의 바로 그 가사! "스기테유쿤다 쿄오모 ~ 오모이데노 호오코" 도입부 박자 밀리지 않게 경쾌하게 진입하기.',
+        stanzas: [
+          {
+            orig: '過ぎてゆくんだ今日も',
+            furi: 'すぎて ゆくんだ きょうも',
+            ruby: '<ruby>過<rt>す</rt></ruby>ぎてゆくんだ<ruby>今日<rt>きょう</rt></ruby>も',
+            pron: '스기테유쿤다 쿄오모',
+            trans: '오늘도 그렇게 지나간다'
+          },
+          {
+            orig: 'この寿命の通りに',
+            furi: 'この じゅみょうの とおりに',
+            ruby: 'この<ruby>寿命<rt>じゅみょう</rt></ruby>の<ruby>通<rt>とお</rt></ruby>りに',
+            pron: '코노 주묘오노 토오리니',
+            trans: '이 수명처럼'
+          },
+          {
+            orig: '限りある数字が減るように',
+            furi: 'かぎり ある すうじが へるように',
+            ruby: '<ruby>限<rt>かぎ</rt></ruby>りある<ruby>数字<rt>すうじ</rt></ruby>が<ruby>減<rt>へ</rt></ruby>るように',
+            pron: '카기리 아루 스우지가 헤루요오니',
+            trans: '정해진 숫자가 줄어들듯이'
+          },
+          {
+            orig: '美しい数字が増えるように',
+            furi: 'うつくしい すうじが ふえるように',
+            ruby: '<ruby>美<rt>うつく</rt></ruby>しい<ruby>数字<rt>すうじ</rt></ruby>が<ruby>増<rt>ふ</rt></ruby>えるように',
+            pron: '우츠쿠시이 스우지가 후에루요오니',
+            trans: '아름다운 숫자가 늘어나듯이'
+          },
+          {
+            orig: '思い出の宝庫',
+            furi: 'おもいでの ほうこ',
+            ruby: '<ruby>思<rt>おも</rt></ruby>い<ruby>出<rt>で</rt></ruby>の<ruby>宝庫<rt>ほうこ</rt></ruby>',
+            pron: '오모이데노 호오코',
+            trans: '추억의 보물상자'
+          },
+          {
+            orig: '古いものは棚の奥に',
+            furi: 'ふるい ものは たなの おくに',
+            ruby: '<ruby>古<rt>ふる</rt></ruby>いものは<ruby>棚<rt>たな</rt></ruby>の<ruby>奥<rt>おく</rt></ruby>に',
+            pron: '후루이 모노와 타나노 오쿠니',
+            trans: '오래된 것은 선반 깊숙한 곳에'
+          },
+          {
+            orig: '埃を被っているのに',
+            furi: 'ほこりを かぶって いるのに',
+            ruby: '<ruby>埃<rt>ほこり</rt></ruby>を<ruby>被<rt>かぶ</rt></ruby>っているのに',
+            pron: '호코리오 카붓테 이루노니',
+            trans: '먼지를 뒤집어쓰고 있는데도'
+          },
+          {
+            orig: '誇りが光って見えるように',
+            furi: 'ほこりが ひかって みえるように',
+            ruby: '<ruby>誇<rt>ほこ</rt></ruby>りが<ruby>光<rt>ひか</rt></ruby>って<ruby>見<rt>み</rt></ruby>えるように',
+            pron: '호코리가 히캇테 미에루요오니',
+            trans: '자긍심이 빛나 보이듯이'
+          },
+          {
+            orig: 'されど By my side 不安 喝采 連帯',
+            furi: 'されど By my side ふあん かっさい れんたい',
+            ruby: 'されど By my side <ruby>不安<rt>ふあん</rt></ruby> <ruby>喝采<rt>かっさい</rt></ruby> <ruby>連帯<rt>れんたい</rt></ruby>',
+            pron: '사레도 By my side 후안 캇사이 렌타이',
+            trans: '그렇지만 내 곁엔 불안, 갈채, 연대'
+          },
+          {
+            orig: '濁ったりの安全地帯 グワングワンになる朝方の倦怠感',
+            furi: 'にごったりの あんぜんちたい ぐわんぐわんに なる あさがたの けんたいかん',
+            ruby: '<ruby>濁<rt>にご</rt></ruby>ったりの<ruby>安全地帯<rt>あんぜんちたい</rt></ruby> グワングワンになる<ruby>朝方<rt>あさがた</rt></ruby>の<ruby>倦怠感<rt>けんたいかん</rt></ruby>',
+            pron: '니곳타리노 안젠치타이 구완구완니 나루 아사가타노 켄타이칸',
+            trans: '탁해진 안전지대, 지끈거리는 해 뜰 무렵의 권태감'
+          },
+          {
+            orig: '三番ホーム 準急電車 青に似たすっぱい春とライラック',
+            furi: 'さんばん ほーむ じゅんきゅう でんしゃ あおに にた すっぱい はると らいらっく',
+            ruby: '<ruby>三番<rt>さんばん</rt></ruby>ホーム <ruby>準急電車<rt>じゅんきゅうでんしゃ</rt></ruby> <ruby>青<rt>あお</rt></ruby>に<ruby>似<rt>に</rt></ruby>たすっぱい<ruby>春<rt>はる</rt></ruby>とライラック',
+            pron: '산반 호-무 쥰큐-덴샤 아오니 니타 슷파이 하루토 라이랏쿠',
+            trans: '3번 홈 준급행 열차, 푸름을 닮은 시큼한 봄과 라일락'
+          },
+          {
+            orig: '君を待つよ ここでね',
+            furi: 'きみを まつよ ここでね',
+            ruby: '<ruby>君<rt>きみ</rt></ruby>を<ruby>待<rt>ま</rt></ruby>つよ ここでね',
+            pron: '키미오 마츠요 코코데네',
+            trans: '너를 기다릴게 여기서 말이야'
+          }
+        ],
+        annotations: {
+          breaths: { '0-pron-5': 'v', '0-pron-9': 'v', '1-pron-9': 'deep', '2-pron-8': 'v', '3-pron-9': 'v', '4-pron-7': 'v', '10-pron-11': 'deep' },
+          highlights: {
+            '0-orig-0': 'yellow', '0-orig-1': 'yellow', '0-orig-2': 'yellow',
+            '4-orig-0': 'mint', '4-orig-1': 'mint', '4-orig-2': 'mint', '4-orig-3': 'mint', '4-orig-4': 'mint', '4-orig-5': 'mint'
+          },
+          vocalTags: { '3-orig-0': '↗가성', '10-orig-19': '⚡벨팅' },
+          strokes: []
+        }
+      },
+      {
+        id: 'jpop-kaiju',
+        category: 'J-POP',
+        title: '怪獣の花唄 (괴수의 꽃노래)',
+        artist: 'Vaundy (바운디)',
+        keyInfo: 'D Major · 최고음 3옥타브 도#(C#5)',
+        bpm: 150,
+        pitchFreq: 293.66,
+        pitchName: 'D4 (레)',
+        favorite: true,
+        practicing: true,
+        vocalTip: '촉음과 리듬 바운스를 살려 부르고, 후렴 직전 깊은 복식호흡(∨∨)으로 고음을 준비하세요.',
+        memo: '후렴 들어갈 때 목에 힘 빼고 연구개 열기!',
+        stanzas: [
+          {
+            orig: '思い出すのは君の歌',
+            furi: 'おもいだすのは きみの うた',
+            ruby: '<ruby>思<rt>おも</rt></ruby>い<ruby>出<rt>だ</rt></ruby>すのは<ruby>君<rt>きみ</rt></ruby>の<ruby>歌<rt>うた</rt></ruby>',
+            pron: '오모이다스노와 키미노 우타',
+            trans: '떠오르는 것은 너의 노래'
+          },
+          {
+            orig: '会話よりも鮮明だ',
+            furi: 'かいわよりも せんめいだ',
+            ruby: '<ruby>会話<rt>かいわ</rt></ruby>よりも<ruby>鮮明<rt>せんめい</rt></ruby>だ',
+            pron: '카이와요리모 센메이다',
+            trans: '대화보다도 선명해'
+          },
+          {
+            orig: 'もっと もっと 誰かのせいにして',
+            furi: 'もっと もっと だれかの せいに して',
+            ruby: 'もっと もっと <ruby>誰<rt>だれ</rt></ruby>かのせいにして',
+            pron: '못토 못토 다레카노 세이니 시테',
+            trans: '좀 더, 좀 더 누군가의 탓으로 돌리고'
+          },
+          {
+            orig: '落ちてく まだ 僕らが願うなら',
+            furi: 'おちてく まだ ぼくらが ねがうなら',
+            ruby: '<ruby>落<rt>お</rt></ruby>ちてく まだ <ruby>僕<rt>ぼく</rt></ruby>らが<ruby>願<rt>ねが</rt></ruby>うなら',
+            pron: '오치테쿠 마다 보쿠라가 네가우나라',
+            trans: '빠져들어 가, 아직 우리가 바란다면'
+          }
+        ],
+        annotations: { breaths: { '0-pron-7': 'v', '2-pron-6': 'deep' }, highlights: {}, vocalTags: {}, strokes: [] }
+      },
+      {
+        id: 'jpop-marigold',
+        category: 'J-POP',
+        title: 'マリーゴールド (마리골드)',
+        artist: 'Aimyon (아이묭)',
+        keyInfo: 'D Major · 중저음 호흡 컨트롤 곡',
+        bpm: 106,
+        pitchFreq: 293.66,
+        pitchName: 'D4 (레)',
+        favorite: true,
+        practicing: false,
+        vocalTip: '편안한 흉성 위주로 담백하게 부르되, 문장 끝 호흡이 흔들리지 않게 일정한 날숨을 유지하세요.',
+        memo: '',
+        stanzas: [
+          {
+            orig: '風の強さがちょっと',
+            furi: 'かぜの つよさが ちょっと',
+            ruby: '<ruby>風<rt>かぜ</rt></ruby>の<ruby>強<rt>つよ</rt></ruby>さがちょっと',
+            pron: '카제노 츠요사가 춋토',
+            trans: '바람의 세기가 조금'
+          },
+          {
+            orig: '心を揺さぶりすぎて',
+            furi: 'こころを ゆさぶりすぎて',
+            ruby: '<ruby>心<rt>こころ</rt></ruby>を<ruby>揺<rt>ゆ</rt></ruby>さぶりすぎて',
+            pron: '코코로오 유사부리스기테',
+            trans: '마음을 너무 흔들어 놓아서'
+          },
+          {
+            orig: '麦わらの帽子の君が',
+            furi: 'むぎわらの ぼうしの きみが',
+            ruby: '<ruby>麦<rt>むぎ</rt></ruby>わらの<ruby>帽子<rt>ぼうし</rt></ruby>の<ruby>君<rt>きみ</rt></ruby>が',
+            pron: '무기와라노 보오시노 키미가',
+            trans: '밀짚모자를 쓴 그대가'
+          },
+          {
+            orig: '揺れたマリーゴールドに似てる',
+            furi: 'ゆれた まりーごーるどに にてる',
+            ruby: '<ruby>揺<rt>ゆ</rt></ruby>れたマリーゴールドに<ruby>似<rt>に</rt></ruby>てる',
+            pron: '유레타 마리이고오루도니 니테루',
+            trans: '흔들리는 마리골드와 닮았어'
+          }
+        ],
+        annotations: { breaths: { '0-pron-9': 'v' }, highlights: {}, vocalTags: {}, strokes: [] }
+      },
+      {
+        id: 'jpop-betelgeuse',
+        category: 'J-POP',
+        title: 'ベテルギウス (베텔기우스)',
+        artist: 'Yuuri (유우리)',
+        keyInfo: 'F Major · 가성↔진성 전환 핵심곡',
+        bpm: 90,
+        pitchFreq: 349.23,
+        pitchName: 'F4 (파)',
+        favorite: false,
+        practicing: true,
+        vocalTip: '가성(↗)과 진성 벨팅이 빠르게 교차합니다. 가성 구간에서 숨이 너무 많이 새지 않도록 주의하세요.',
+        memo: '',
+        stanzas: [
+          {
+            orig: '空にある何かを見つめてたら',
+            furi: 'そらに ある なにかを みつめてたら',
+            ruby: '<ruby>空<rt>そら</rt></ruby>にある<ruby>何<rt>なに</rt></ruby>かを<ruby>見<rt>み</rt></ruby>つめてたら',
+            pron: '소라니 아루 나니카오 미츠메테타라',
+            trans: '하늘에 있는 무언가를 바라보다 보니'
+          },
+          {
+            orig: 'それは星だって君が教えてくれた',
+            furi: 'それは ほしだって きみが おしえて くれた',
+            ruby: 'それは<ruby>星<rt>ほし</rt></ruby>だって<ruby>君<rt>きみ</rt></ruby>が<ruby>教<rt>おし</rt></ruby>えてくれた',
+            pron: '소레와 호시닷테 키미가 오시에테 쿠레타',
+            trans: '그건 별이라고 네가 가르쳐 주었지'
+          }
+        ],
+        annotations: { breaths: { '0-pron-7': 'v' }, highlights: {}, vocalTags: {}, strokes: [] }
+      },
+      {
+        id: 'kpop-day6',
+        category: 'K-POP',
+        title: '한 페이지가 될 수 있게',
+        artist: 'DAY6 (데이식스)',
+        keyInfo: 'C# Major · 최고음 3옥타브 도#(C#5)',
+        bpm: 175,
+        pitchFreq: 277.18,
+        pitchName: 'C#4 (도#)',
+        favorite: true,
+        practicing: true,
+        vocalTip: '빠른 템포의 록 발성 곡입니다. 자음을 명확히 튕겨서 리듬감을 살리고 후렴 전 호흡을 짧고 깊게 마시세요.',
+        memo: '',
+        stanzas: [
+          {
+            orig: '솔직히 말할게 많이 기다려 왔어',
+            pron: '[발음 팁] 솔직키 마랄께 / 마니 기다려 와써',
+            trans: '차분하고 담백한 중저음 톤으로 시작'
+          },
+          {
+            orig: '아름다운 청춘의 한 장 함께 써내려 가자',
+            pron: '[발음 팁] 아름다운 청추네 한 장 / 함께 써내려 가자',
+            trans: '후렴 메인 하이라이트 — 시원한 고음 벨팅'
+          }
+        ],
+        annotations: { breaths: { '0-orig-6': 'v' }, highlights: {}, vocalTags: {}, strokes: [] }
+      },
+      {
+        id: 'pop-diewithasmile',
+        category: 'POP',
+        title: 'Die With A Smile',
+        artist: 'Lady Gaga & Bruno Mars',
+        keyInfo: 'A Major · 소울풀 벨팅 & 영어 연음',
+        bpm: 158,
+        pitchFreq: 220.00,
+        pitchName: 'A3 (라)',
+        favorite: true,
+        practicing: true,
+        vocalTip: '영어 연음(Linking) 구간을 자연스럽게 이어 읽고, 후렴 "If the world was ending"에서 넓은 성도로 소리 내세요.',
+        memo: '',
+        stanzas: [
+          {
+            orig: 'I, I just woke up from a dream',
+            pron: '아이, 아이 저스트 워컵 프럼 어 드림',
+            trans: '나 방금 꿈에서 깨어났어'
+          },
+          {
+            orig: 'If the world was ending, I’d wanna be next to you',
+            pron: '이프 더 월 워즈 엔딩, 아읻 워너 비 넥스트 투 유',
+            trans: '세상이 끝난다 해도 난 네 곁에 있고 싶어'
+          }
+        ],
+        annotations: { breaths: { '0-pron-3': 'v' }, highlights: {}, vocalTags: {}, strokes: [] }
+      }
+    ];
+
+    const STORAGE_KEY = 'vocal_note_studio_v3';
+    let state = {
+      songs: [],
+      activeSongId: 'mga-darling',
+      categoryFilter: 'J-POP',
+      statusFilter: 'all',
+      searchQuery: '',
+      currentTool: 'breath',
+      breathType: 'v',
+      hlColor: 'yellow',
+      hlHex: 'rgba(253, 224, 71, 0.45)',
+      penColor: '#1e293b',
+      penSize: 2.5,
+      vocalTagText: '↗가성',
+      showOrig: true,
+      showPron: true,
+      showTrans: true,
+      showDotGrid: false,
+      jpopViewMode: 'standard',
+      showFuriMeaning: false,
+      isReadOnly: false,
+      ownerPin: '1234',
+      fontScale: 1.0,
+      transposeSemitones: 0,
+      audioPitchSemitones: 0,
+      audioPlaybackRate: 1.0,
+      autoScrolling: false,
+      metronomePlaying: false,
+      editingSongId: null,
+      undoStack: [],
+      lastSavedAt: null,
+      cloudConnected: false
+    };
+
+    // --- Cloud Sync (Firestore) Setup for Multi-Computer Persistence ---
+    let db = null;
+    let auth = null;
+    let currentUser = null;
+    let isApplyingRemoteSnapshot = false;
+    let cloudSaveDebounceTimer = null;
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'vocal-note-studio-app';
+
+    function updateSyncStatusBadge(statusType, timeStr) {
+      const dot = document.getElementById('cloudSyncDot');
+      const txt = document.getElementById('cloudSyncStatusText');
+      const modalTime = document.getElementById('saveModalTimestamp');
+      const memoInd = document.getElementById('memoSavedIndicator');
+
+      if (!dot || !txt) return;
+
+      if (statusType === 'saving') {
+        dot.className = 'w-2 h-2 rounded-full bg-amber-400 animate-ping';
+        txt.textContent = '클라우드 저장중...';
+        if (memoInd) memoInd.textContent = '☁️ 저장 중...';
+      } else if (statusType === 'saved_cloud') {
+        dot.className = 'w-2 h-2 rounded-full bg-emerald-500';
+        txt.textContent = `☁️ 저장됨 (${timeStr})`;
+        if (modalTime) modalTime.textContent = `${timeStr} 클라우드 동기화 완료`;
+        if (memoInd) memoInd.textContent = `☁️ 모든 기기 저장 완료 (${timeStr})`;
+      } else if (statusType === 'saved_local') {
+        dot.className = 'w-2 h-2 rounded-full bg-sky-500';
+        txt.textContent = `💾 기기 저장됨 (${timeStr})`;
+        if (modalTime) modalTime.textContent = `${timeStr} 저장 완료`;
+      } else if (statusType === 'error') {
+        dot.className = 'w-2 h-2 rounded-full bg-rose-500';
+        txt.textContent = '⚠️ 저장 확인 필요';
+      }
+      updateSaveCheckModalStats();
+    }
+
+    function updateSaveCheckModalStats() {
+      const elSongs = document.getElementById('statTotalSongs');
+      const elBreaths = document.getElementById('statTotalBreaths');
+      const elHighlights = document.getElementById('statTotalHighlights');
+      const elDrives = document.getElementById('statTotalDriveLinks');
+      if (!elSongs) return;
+
+      let totalBreaths = 0;
+      let totalHlAndTags = 0;
+      let totalDrives = 0;
+
+      (state.songs || []).forEach(s => {
+        if (s.audioDriveUrl && s.audioDriveUrl.trim()) totalDrives++;
+        if (s.annotations) {
+          totalBreaths += Object.keys(s.annotations.breaths || {}).length;
+          totalHlAndTags += Object.keys(s.annotations.highlights || {}).length + Object.keys(s.annotations.vocalTags || {}).length;
+        }
+      });
+
+      elSongs.textContent = `${(state.songs || []).length}곡`;
+      elBreaths.textContent = `${totalBreaths}곳`;
+      elHighlights.textContent = `${totalHlAndTags}개`;
+      elDrives.textContent = `${totalDrives}곡`;
+    }
+
+    async function initCloudSync() {
+      try {
+        if (typeof __firebase_config === 'undefined' || !__firebase_config) {
+          const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          updateSyncStatusBadge('saved_local', nowStr);
+          return;
+        }
+
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+        auth = getAuth(app);
+
+        // RULE 3: Auth Before Queries
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          await signInWithCustomToken(auth, __initial_auth_token);
+        } else {
+          await signInAnonymously(auth);
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+          currentUser = user;
+          if (!user) return;
+          state.cloudConnected = true;
+
+          // RULE 1: Strict Path inside /artifacts/{appId}/public/data/vocal_studio_sync/main_workspace
+          const studioDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'vocal_studio_sync', 'main_workspace');
+
+          // Initial fetch to check if cloud already has saved data from another computer
+          try {
+            const snap = await getDoc(studioDocRef);
+            if (snap.exists()) {
+              const cloudData = snap.data();
+              if (cloudData && cloudData.songsJson) {
+                applyCloudDataToState(cloudData);
+              }
+            } else {
+              // First time ever: push current state to cloud
+              await pushStateToCloudImmediate();
+            }
+          } catch (err) {
+            console.warn('Initial cloud fetch error:', err);
+          }
+
+          // Real-time listener across computers/devices
+          onSnapshot(
+            studioDocRef,
+            (docSnap) => {
+              if (!docSnap.exists()) return;
+              const data = docSnap.data();
+              if (!data || !data.songsJson) return;
+              // Ignore if this snapshot is older or equal to our own save
+              if (state.lastSavedAt && data.updatedAt && data.updatedAt <= state.lastSavedAt) {
+                return;
+              }
+              applyCloudDataToState(data);
+            },
+            (err) => {
+              console.warn('Cloud realtime sync error:', err);
+            }
+          );
+        });
+      } catch (err) {
+        console.warn('Cloud init fallback to local:', err);
+        const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        updateSyncStatusBadge('saved_local', nowStr);
+      }
+    }
+
+    function applyCloudDataToState(cloudData) {
+      try {
+        isApplyingRemoteSnapshot = true;
+        const parsedSongs = JSON.parse(cloudData.songsJson);
+        if (Array.isArray(parsedSongs) && parsedSongs.length > 0) {
+          const prevActiveSongId = state.activeSongId;
+          state.songs = parsedSongs;
+          if (!state.songs.some(s => s.id === state.activeSongId)) {
+            state.activeSongId = cloudData.activeSongId || state.songs[0].id;
+          }
+          if (cloudData.ownerPin) state.ownerPin = cloudData.ownerPin;
+          state.lastSavedAt = cloudData.updatedAt || Date.now();
+
+          // Also mirror to local cache
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({
+              songs: state.songs,
+              activeSongId: state.activeSongId,
+              ownerPin: state.ownerPin,
+              isReadOnly: state.isReadOnly,
+              updatedAt: state.lastSavedAt
+            }));
+          } catch (e) {}
+
+          renderSongList();
+          const songChanged = prevActiveSongId !== state.activeSongId;
+          renderActiveSongStudio({ reloadAudio: songChanged });
+
+          const timeLabel = cloudData.updatedTimeStr || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          updateSyncStatusBadge('saved_cloud', timeLabel);
+        }
+      } catch (err) {
+        console.warn('applyCloudDataToState error:', err);
+      } finally {
+        isApplyingRemoteSnapshot = false;
+      }
+    }
+
+    async function pushStateToCloudImmediate() {
+      const now = Date.now();
+      const timeStr = new Date(now).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      state.lastSavedAt = now;
+
+      if (!db || !currentUser) {
+        updateSyncStatusBadge('saved_local', timeStr);
+        return false;
+      }
+
+      try {
+        updateSyncStatusBadge('saving', timeStr);
+        const studioDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'vocal_studio_sync', 'main_workspace');
+        await setDoc(studioDocRef, {
+          songsJson: JSON.stringify(state.songs),
+          activeSongId: state.activeSongId,
+          ownerPin: state.ownerPin,
+          updatedAt: now,
+          updatedTimeStr: timeStr,
+          updatedByUid: currentUser.uid
+        });
+        updateSyncStatusBadge('saved_cloud', timeStr);
+        return true;
+      } catch (err) {
+        console.warn('Cloud save error:', err);
+        updateSyncStatusBadge('error', timeStr);
+        return false;
+      }
+    }
+
+    const AUDIO_DB_NAME = 'VocalNoteAudioDB_v1';
+    const AUDIO_STORE_NAME = 'song_recordings';
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let recordTimerInterval = null;
+    let recordSeconds = 0;
+    let currentAudioBlobUrl = null;
+    let loadedAudioSongId = null;
+
+    function openAudioDB() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open(AUDIO_DB_NAME, 1);
+        req.onupgradeneeded = (e) => {
+          const idb = e.target.result;
+          if (!idb.objectStoreNames.contains(AUDIO_STORE_NAME)) {
+            idb.createObjectStore(AUDIO_STORE_NAME, { keyPath: 'songId' });
+          }
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function dbSaveAudio(songId, blob, meta) {
+      try {
+        const idb = await openAudioDB();
+        const tx = idb.transaction(AUDIO_STORE_NAME, 'readwrite');
+        const store = tx.objectStore(AUDIO_STORE_NAME);
+        store.put({
+          songId,
+          blob,
+          name: meta.name || '내 보컬 연습 녹음',
+          date: meta.date || new Date().toLocaleString(),
+          size: blob.size,
+          type: blob.type || 'audio/webm'
+        });
+        return new Promise(res => { tx.oncomplete = () => res(true); });
+      } catch (err) {
+        console.warn('dbSaveAudio error:', err);
+        return false;
+      }
+    }
+
+    async function dbGetAudio(songId) {
+      try {
+        const idb = await openAudioDB();
+        const tx = idb.transaction(AUDIO_STORE_NAME, 'readonly');
+        const store = tx.objectStore(AUDIO_STORE_NAME);
+        const req = store.get(songId);
+        return new Promise(res => {
+          req.onsuccess = () => res(req.result);
+          req.onerror = () => res(null);
+        });
+      } catch (err) {
+        console.warn('dbGetAudio error:', err);
+        return null;
+      }
+    }
+
+    async function dbDeleteAudio(songId) {
+      try {
+        const idb = await openAudioDB();
+        const tx = idb.transaction(AUDIO_STORE_NAME, 'readwrite');
+        const store = tx.objectStore(AUDIO_STORE_NAME);
+        store.delete(songId);
+        return new Promise(res => { tx.oncomplete = () => res(true); });
+      } catch (err) {
+        console.warn('dbDeleteAudio error:', err);
+        return false;
+      }
+    }
+
+    function extractGoogleDriveAudioUrl(rawUrl) {
+      if (!rawUrl) return null;
+      const str = rawUrl.trim();
+      let m = str.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+      if (m && m[1]) {
+        return {
+          id: m[1],
+          isDrive: true,
+          previewUrl: `https://drive.google.com/file/d/${m[1]}/preview`,
+          streamUrl: `https://docs.google.com/uc?export=download&id=${m[1]}`,
+          originalUrl: str
+        };
+      }
+      m = str.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+      if (m && m[1]) {
+        return {
+          id: m[1],
+          isDrive: true,
+          previewUrl: `https://drive.google.com/file/d/${m[1]}/preview`,
+          streamUrl: `https://docs.google.com/uc?export=download&id=${m[1]}`,
+          originalUrl: str
+        };
+      }
+      if (str.startsWith('http')) {
+        return {
+          id: 'custom-url',
+          isDrive: false,
+          previewUrl: null,
+          streamUrl: str,
+          originalUrl: str
+        };
+      }
+      return null;
+    }
+
+    let toneMediaSource = null;
+    let tonePitchShiftNode = null;
+    let toneGraphConnected = false;
+
+    async function ensureTonePitchGraph() {
+      const audioElement = document.getElementById('vocalAudioElement');
+      if (!audioElement || typeof Tone === 'undefined') return false;
+      try {
+        if (Tone.context.state !== 'running') {
+          await Tone.start();
+        }
+        if (!toneGraphConnected) {
+          const rawCtx = Tone.context.rawContext;
+          toneMediaSource = rawCtx.createMediaElementSource(audioElement);
+          tonePitchShiftNode = new Tone.PitchShift({
+            pitch: state.audioPitchSemitones || 0,
+            windowSize: 0.1,
+            delayTime: 0,
+            feedback: 0
+          }).toDestination();
+          Tone.connect(toneMediaSource, tonePitchShiftNode);
+          toneGraphConnected = true;
+        }
+        return true;
+      } catch (err) {
+        console.warn('Tone.js PitchShift DSP fallback:', err);
+        return false;
+      }
+    }
+
+    function applyAudioSpeedAndPitch() {
+      const audioElement = document.getElementById('vocalAudioElement');
+      if (!audioElement) return;
+
+      const semitones = state.audioPitchSemitones || 0;
+      const speed = state.audioPlaybackRate || 1.0;
+
+      audioElement.preservesPitch = true;
+      audioElement.mozPreservesPitch = true;
+      audioElement.webkitPreservesPitch = true;
+      audioElement.playbackRate = speed;
+
+      if (tonePitchShiftNode) {
+        tonePitchShiftNode.pitch = semitones;
+      }
+
+      const label = document.getElementById('audioPitchLabel');
+      if (label) {
+        if (semitones === 0) {
+          label.textContent = '원키(0)';
+          label.className = 'text-[10px] font-bold text-emerald-400 min-w-[46px] text-center';
+        } else if (semitones > 0) {
+          label.textContent = `+${semitones}키(♯)`;
+          label.className = 'text-[10px] font-bold text-amber-400 min-w-[46px] text-center';
+        } else {
+          label.textContent = `${semitones}키(♭)`;
+          label.className = 'text-[10px] font-bold text-sky-400 min-w-[46px] text-center';
+        }
+      }
+    }
+
+    let autoScrollTimer = null;
+    let metronomeTimer = null;
+    let audioCtx = null;
+    let isDrawing = false;
+    let isTextDragging = false;
+    let currentStroke = null;
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && Array.isArray(parsed.songs) && parsed.songs.length > 0) {
+            const existingIds = new Set(parsed.songs.map(item => item.id));
+            const missingInitial = INITIAL_SONGS.filter(item => !existingIds.has(item.id));
+            state.songs = [...JSON.parse(JSON.stringify(missingInitial)), ...parsed.songs];
+            state.activeSongId = parsed.activeSongId || state.songs[0].id;
+            if (parsed.ownerPin) state.ownerPin = parsed.ownerPin;
+            if (typeof parsed.isReadOnly === 'boolean') state.isReadOnly = parsed.isReadOnly;
+            if (parsed.updatedAt) state.lastSavedAt = parsed.updatedAt;
+          }
+        }
+      } catch (err) {
+        console.warn('localStorage load skipped:', err);
+      }
+
+      if (!state.songs || state.songs.length === 0) {
+        state.songs = JSON.parse(JSON.stringify(INITIAL_SONGS));
+      }
+
+      try {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('mode') === 'readonly' || window.location.hash.includes('readonly')) {
+          state.isReadOnly = true;
+        }
+        const sharedSongId = params.get('song');
+        if (sharedSongId && state.songs.some(s => s.id === sharedSongId)) {
+          state.activeSongId = sharedSongId;
+        }
+      } catch (err) {
+        console.warn('URL parse skipped:', err);
+      }
+    }
+
+    function saveState() {
+      const now = Date.now();
+      state.lastSavedAt = now;
+      const timeStr = new Date(now).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          songs: state.songs,
+          activeSongId: state.activeSongId,
+          ownerPin: state.ownerPin,
+          isReadOnly: state.isReadOnly,
+          updatedAt: now
+        }));
+      } catch (err) {
+        console.warn('localStorage save skipped:', err);
+      }
+
+      if (isApplyingRemoteSnapshot) return;
+
+      updateSyncStatusBadge('saving', timeStr);
+      clearTimeout(cloudSaveDebounceTimer);
+      cloudSaveDebounceTimer = setTimeout(() => {
+        pushStateToCloudImmediate();
+      }, 350);
+    }
+
+    function getActiveSong() {
+      return state.songs.find(s => s.id === state.activeSongId) || state.songs[0];
+    }
+
+    function pushUndoSnapshot() {
+      const song = getActiveSong();
+      if (!song) return;
+      state.undoStack.push({
+        songId: song.id,
+        annotations: JSON.parse(JSON.stringify(song.annotations))
+      });
+      if (state.undoStack.length > 25) state.undoStack.shift();
+    }
+
+    function showToast(msg) {
+      const box = document.getElementById('toastBox');
+      const text = document.getElementById('toastText');
+      text.textContent = msg;
+      box.classList.remove('hidden');
+      box.classList.add('flex');
+      clearTimeout(box._timer);
+      box._timer = setTimeout(() => {
+        box.classList.add('hidden');
+        box.classList.remove('flex');
+      }, 2600);
+    }
+
+    function updateSongHeaderStatsOnly() {
+      const song = getActiveSong();
+      if (!song) return;
+      const breathTotal = Object.keys((song.annotations && song.annotations.breaths) || {}).length;
+      document.getElementById('activeSongBreathCount').textContent = `호흡 체크 ${breathTotal}곳`;
+
+      const favBtn = document.getElementById('toggleFavoriteBtn');
+      favBtn.className = `p-2 rounded-xl border transition ${
+        song.favorite ? 'bg-amber-50 border-amber-300 text-amber-500' : 'border-slate-200 text-slate-400 hover:bg-slate-50'
+      }`;
+
+      const pracBtn = document.getElementById('togglePracticingBtn');
+      pracBtn.className = `px-3 py-2 rounded-xl border text-xs font-bold transition ${
+        song.practicing ? 'bg-orange-50 border-orange-300 text-orange-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+      }`;
+      pracBtn.textContent = song.practicing ? '🔥 연습중' : '🔥 연습중 표시';
+      updateSaveCheckModalStats();
+    }
+
+    function updateReadOnlyUI() {
+      const ro = state.isReadOnly;
+      const banner = document.getElementById('readOnlyBanner');
+      banner.classList.toggle('hidden', !ro);
+      banner.classList.toggle('flex', ro);
+
+      const lockBtn = document.getElementById('openShareLockModalBtn');
+      const lockIcon = document.getElementById('lockStatusIcon');
+      const lockText = document.getElementById('lockStatusText');
+      if (ro) {
+        lockBtn.className = 'inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-xl text-xs font-bold border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 transition';
+        lockIcon.textContent = '🔒';
+        lockText.textContent = '열람 전용 (잠금중)';
+      } else {
+        lockBtn.className = 'inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-xl text-xs font-bold border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition';
+        lockIcon.textContent = '🔓';
+        lockText.textContent = '나만 수정 / 공유';
+      }
+
+      document.getElementById('openAddSongModalBtn').classList.toggle('hidden', ro);
+      document.getElementById('editCurrentSongBtn').classList.toggle('hidden', ro);
+      document.getElementById('resetDemoDataBtn').classList.toggle('hidden', ro);
+      document.getElementById('editingToolsGroup').classList.toggle('hidden', ro);
+      document.getElementById('undoClearGroup').classList.toggle('hidden', ro);
+      document.getElementById('subOptionsContainer').classList.toggle('hidden', ro);
+
+      const roNotice = document.getElementById('readOnlyToolbarNotice');
+      roNotice.classList.toggle('hidden', !ro);
+      roNotice.classList.toggle('flex', ro);
+
+      const memoEl = document.getElementById('songPracticeMemo');
+      memoEl.readOnly = ro;
+
+      const canvas = document.getElementById('drawingCanvas');
+      if (ro) {
+        canvas.className = 'canvas-passthrough';
+      } else {
+        setPracticeTool(state.currentTool);
+      }
+
+      renderLyricsStanzas();
+    }
+
+    function renderSongList() {
+      const container = document.getElementById('songListContainer');
+      const q = state.searchQuery.trim().toLowerCase();
+
+      const filtered = state.songs.filter(song => {
+        if (state.categoryFilter !== 'ALL' && song.category !== state.categoryFilter) return false;
+        if (state.statusFilter === 'practicing' && !song.practicing) return false;
+        if (state.statusFilter === 'favorite' && !song.favorite) return false;
+        if (q) {
+          const inTitle = song.title.toLowerCase().includes(q);
+          const inArtist = song.artist.toLowerCase().includes(q);
+          const inLyrics = song.stanzas.some(st =>
+            (st.orig && st.orig.toLowerCase().includes(q)) ||
+            (st.furi && st.furi.toLowerCase().includes(q)) ||
+            (st.pron && st.pron.toLowerCase().includes(q)) ||
+            (st.trans && st.trans.toLowerCase().includes(q))
+          );
+          return inTitle || inArtist || inLyrics;
+        }
+        return true;
+      });
+
+      const countBadge = document.getElementById('filteredCountBadge');
+      if (countBadge) countBadge.textContent = `총 ${filtered.length}곡`;
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="p-8 text-center text-slate-400 text-xs space-y-2">
+            <p class="font-semibold text-slate-500">조건에 맞는 노래가 없습니다</p>
+            <p>다른 카테고리를 선택하거나 상단 [+ 노래 추가] 버튼으로 새 연습곡을 등록해 보세요.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered.map(song => {
+        const isActive = song.id === state.activeSongId;
+        const breathCount = Object.keys((song.annotations && song.annotations.breaths) || {}).length;
+        const catColor =
+          song.category === 'J-POP' ? 'bg-violet-100 text-violet-700' :
+          song.category === 'K-POP' ? 'bg-rose-100 text-rose-700' :
+          'bg-sky-100 text-sky-700';
+
+        return `
+          <button
+            type="button"
+            data-song-id="${song.id}"
+            class="song-item-btn w-full text-left p-3 rounded-xl transition flex items-start justify-between gap-2 ${
+              isActive
+                ? 'bg-violet-50 border border-violet-200 shadow-sm'
+                : 'hover:bg-slate-50 border border-transparent'
+            }"
+          >
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1.5 mb-1">
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-extrabold ${catColor}">${song.category}</span>
+                ${song.practicing ? '<span class="text-[10px] font-bold text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded">🔥 연습중</span>' : ''}
+                ${breathCount > 0 ? `<span class="text-[10px] font-semibold text-red-500">∨ ${breathCount}</span>` : ''}
+                ${song.audioDriveUrl ? '<span class="text-[10px] font-semibold text-sky-600">☁️음원</span>' : ''}
+              </div>
+              <p class="text-sm font-bold truncate ${isActive ? 'text-violet-950' : 'text-slate-800'}">${escapeHtml(song.title)}</p>
+              <p class="text-xs text-slate-500 truncate">${escapeHtml(song.artist)}</p>
+            </div>
+            <div class="flex flex-col items-end gap-1 shrink-0">
+              ${song.favorite ? '<span class="text-amber-400 text-sm">★</span>' : '<span class="text-slate-200 text-sm">☆</span>'}
+            </div>
+          </button>
+        `;
+      }).join('');
+
+      container.querySelectorAll('.song-item-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const targetId = btn.getAttribute('data-song-id');
+          if (targetId !== state.activeSongId) {
+            selectSong(targetId);
+          }
+          closeMobileSidebar();
+        });
+      });
+    }
+
+    function selectSong(songId) {
+      const isSongChanged = state.activeSongId !== songId;
+      state.activeSongId = songId;
+      if (isSongChanged) {
+        state.transposeSemitones = 0;
+        updateTransposeUI();
+      }
+      saveState();
+      renderSongList();
+      renderActiveSongStudio({ reloadAudio: isSongChanged });
+    }
+
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function renderActiveSongStudio(options = { reloadAudio: false }) {
+      const song = getActiveSong();
+      if (!song) return;
+
+      if (!song.annotations) {
+        song.annotations = { breaths: {}, highlights: {}, vocalTags: {}, strokes: [] };
+      }
+
+      const catBadge = document.getElementById('activeSongCategoryBadge');
+      catBadge.textContent = song.category;
+      catBadge.className = `px-2.5 py-0.5 rounded-full text-xs font-extrabold ${
+        song.category === 'J-POP' ? 'bg-violet-100 text-violet-700' :
+        song.category === 'K-POP' ? 'bg-rose-100 text-rose-700' :
+        'bg-sky-100 text-sky-700'
+      }`;
+
+      document.getElementById('activeSongKeyBadge').textContent = song.keyInfo || 'Standard Key';
+      document.getElementById('activeSongTitle').textContent = song.title;
+      document.getElementById('activeSongArtist').textContent = song.artist;
+      document.getElementById('activeSongVocalTip').textContent = song.vocalTip || '호흡 기호(∨)와 형광펜을 활용해 나만의 보컬 악보를 완성해 보세요.';
+      document.getElementById('songBpmBadge').textContent = `${song.bpm || 120} BPM`;
+      document.getElementById('pitchBtnLabel').textContent = `첫음 기준음 (${song.pitchName || 'D4'})`;
+
+      updateSongHeaderStatsOnly();
+
+      const jpopBar = document.getElementById('jpopLyricTabsBar');
+      if (song.category === 'J-POP') {
+        jpopBar.classList.remove('hidden');
+        jpopBar.classList.add('flex');
+      } else {
+        jpopBar.classList.add('hidden');
+        jpopBar.classList.remove('flex');
+      }
+      updateJpopViewTabUI();
+
+      document.getElementById('songPracticeMemo').value = song.memo || '';
+
+      renderLyricsStanzas();
+
+      if (options.reloadAudio || loadedAudioSongId !== song.id) {
+        loadedAudioSongId = song.id;
+        refreshAudioPlayerUI();
+      }
+    }
+
+    function updateJpopViewTabUI() {
+      document.querySelectorAll('.jpop-view-tab').forEach(btn => {
+        const tab = btn.getAttribute('data-jpop-tab');
+        if (tab === state.jpopViewMode) {
+          btn.className = 'jpop-view-tab px-3 py-1.5 rounded-lg text-xs font-bold transition bg-white text-violet-700 shadow-sm';
+        } else {
+          btn.className = 'jpop-view-tab px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-600 hover:text-slate-900';
+        }
+      });
+
+      const furiSub = document.getElementById('furiganaSubOptions');
+      const optLabel = document.getElementById('singleLineOptLabel');
+      if (state.jpopViewMode === 'furigana_only' || state.jpopViewMode === 'korean_pron_only') {
+        furiSub.classList.remove('hidden');
+        furiSub.classList.add('flex');
+        if (optLabel) {
+          optLabel.textContent = state.jpopViewMode === 'korean_pron_only' ? '한국어 발음 탭 옵션:' : '히라가나 전용 탭 옵션:';
+        }
+      } else {
+        furiSub.classList.add('hidden');
+        furiSub.classList.remove('flex');
+      }
+    }
+
+    function getBreathBadgeHtml(type, key) {
+      if (type === 'v') return `<span data-remove-breath="${key}" class="breath-badge breath-badge-v" title="클릭하여 호흡 표시 제거">∨</span>`;
+      if (type === 'deep') return `<span data-remove-breath="${key}" class="breath-badge breath-badge-deep" title="깊은 복식호흡 (클릭 시 제거)">∨∨</span>`;
+      if (type === 'cut') return `<span data-remove-breath="${key}" class="breath-badge breath-badge-cut" title="끊어읽기 (클릭 시 제거)">//</span>`;
+      if (type === 'tie') return `<span data-remove-breath="${key}" class="breath-badge breath-badge-tie" title="호흡 이어부르기 (클릭 시 제거)">⁀</span>`;
+      return '';
+    }
+
+    function renderInteractiveLine(text, stanzaIdx, lineType, extraClasses) {
+      const song = getActiveSong();
+      const breaths = (song && song.annotations && song.annotations.breaths) || {};
+      const highlights = (song && song.annotations && song.annotations.highlights) || {};
+      const vocalTags = (song && song.annotations && song.annotations.vocalTags) || {};
+
+      const chars = Array.from(text || '');
+      const htmlParts = chars.map((ch, charIdx) => {
+        const key = `${stanzaIdx}-${lineType}-${charIdx}`;
+        const hlColor = highlights[key] ? `hl-${highlights[key]}` : '';
+        const breathType = breaths[key];
+        const vTag = vocalTags[key];
+
+        const displayChar = ch === ' ' ? '&nbsp;' : escapeHtml(ch);
+        const vTagHtml = vTag ? `<span data-remove-vtag="${key}" class="vocal-tag-chip" title="클릭하여 발성 기호 삭제">${escapeHtml(vTag)}</span>` : '';
+        const breathHtml = breathType ? getBreathBadgeHtml(breathType, key) : '';
+
+        return `<span data-char-key="${key}" class="char-token ${hlColor}">${vTagHtml}${displayChar}</span>${breathHtml}`;
+      });
+
+      return `<div class="${extraClasses}">${htmlParts.join('')}</div>`;
+    }
+
+    function renderLyricsStanzas() {
+      const song = getActiveSong();
+      const container = document.getElementById('lyricsStanzaContainer');
+      if (!song || !container) return;
+
+      container.className = `relative z-10 space-y-10 text-center mode-${state.currentTool} ${state.isReadOnly ? 'readonly-locked' : ''}`;
+
+      const origSize = (1.32 * state.fontScale).toFixed(2);
+      const pronSize = (1.06 * state.fontScale).toFixed(2);
+      const transSize = (1.05 * state.fontScale).toFixed(2);
+      const furiOnlySize = (1.38 * state.fontScale).toFixed(2);
+      const isJpop = song.category === 'J-POP';
+
+      container.innerHTML = song.stanzas.map((st, idx) => {
+        const furiText = st.furi || autoHiraganaFromPron(st.orig, st.pron);
+
+        if (isJpop && state.jpopViewMode === 'furigana_only') {
+          const furiLineHtml = renderInteractiveLine(furiText, idx, 'furi', 'jp-font font-bold text-slate-900 tracking-wide leading-relaxed');
+          const optionalTransHtml = (state.showFuriMeaning && st.trans)
+            ? `<div class="font-medium text-violet-600 tracking-normal leading-relaxed mt-2" style="font-size:${transSize}rem;">${escapeHtml(st.trans)}</div>`
+            : '';
+          return `
+            <div class="stanza-block group relative py-2 px-3 rounded-xl transition hover:bg-violet-50/40" data-stanza-idx="${idx}">
+              <div style="font-size:${furiOnlySize}rem;">${furiLineHtml}</div>
+              ${optionalTransHtml}
+            </div>
+          `;
+        }
+
+        if (isJpop && state.jpopViewMode === 'korean_pron_only') {
+          const pronOnlyHtml = renderInteractiveLine(st.pron || st.orig, idx, 'pron', 'font-bold text-slate-900 tracking-normal leading-relaxed');
+          const optionalTransHtml = (state.showFuriMeaning && st.trans)
+            ? `<div class="font-medium text-violet-600 tracking-normal leading-relaxed mt-2" style="font-size:${transSize}rem;">${escapeHtml(st.trans)}</div>`
+            : '';
+          return `
+            <div class="stanza-block group relative py-2 px-3 rounded-xl transition hover:bg-violet-50/40" data-stanza-idx="${idx}">
+              <div style="font-size:${furiOnlySize}rem;">${pronOnlyHtml}</div>
+              ${optionalTransHtml}
+            </div>
+          `;
+        }
+
+        if (isJpop && state.jpopViewMode === 'ruby') {
+          const rubyRaw = st.ruby || `<ruby>${escapeHtml(st.orig)}<rt>${escapeHtml(furiText)}</rt></ruby>`;
+          const pronHtml = state.showPron && st.pron
+            ? renderInteractiveLine(st.pron, idx, 'pron', 'font-normal text-slate-700 tracking-normal leading-relaxed mt-2')
+            : '';
+          const transHtml = state.showTrans && st.trans
+            ? `<div class="font-medium text-violet-600 tracking-normal leading-relaxed mt-1.5" style="font-size:${transSize}rem;">${escapeHtml(st.trans)}</div>`
+            : '';
+          return `
+            <div class="stanza-block group relative py-1.5 px-2 rounded-xl transition hover:bg-slate-50/60" data-stanza-idx="${idx}">
+              ${state.showOrig ? `<div class="jp-font font-bold text-slate-900 tracking-tight leading-loose" style="font-size:${origSize}rem;">${rubyRaw}</div>` : ''}
+              <div style="font-size:${pronSize}rem;">${pronHtml}</div>
+              ${transHtml}
+            </div>
+          `;
+        }
+
+        const origHtml = state.showOrig && st.orig
+          ? renderInteractiveLine(st.orig, idx, 'orig', 'jp-font font-bold text-slate-900 tracking-tight leading-relaxed')
+          : '';
+        const pronHtml = state.showPron && st.pron
+          ? renderInteractiveLine(st.pron, idx, 'pron', 'font-normal text-slate-700 tracking-normal leading-relaxed mt-1.5')
+          : '';
+        const transHtml = state.showTrans && st.trans
+          ? `<div class="font-medium text-violet-600 tracking-normal leading-relaxed mt-1.5" style="font-size:${transSize}rem;">${escapeHtml(st.trans)}</div>`
+          : '';
+
+        return `
+          <div class="stanza-block group relative py-1 px-2 rounded-xl transition hover:bg-slate-50/60" data-stanza-idx="${idx}">
+            <div style="font-size:${origSize}rem;">${origHtml}</div>
+            <div style="font-size:${pronSize}rem;">${pronHtml}</div>
+            ${transHtml}
+          </div>
+        `;
+      }).join('');
+
+      requestAnimationFrame(() => resizeAndRedrawCanvas());
+    }
+
+    function setupLyricTokenInteractions() {
+      const container = document.getElementById('lyricsStanzaContainer');
+
+      container.addEventListener('click', (e) => {
+        if (state.isReadOnly) {
+          if (e.target.closest('[data-char-key]') || e.target.closest('[data-remove-breath]') || e.target.closest('[data-remove-vtag]')) {
+            showToast('🔒 열람 전용 모드입니다. 우측 상단에서 작성자 잠금을 해제하세요.');
+          }
+          return;
+        }
+
+        const removeBreathEl = e.target.closest('[data-remove-breath]');
+        if (removeBreathEl) {
+          e.stopPropagation();
+          const key = removeBreathEl.getAttribute('data-remove-breath');
+          const song = getActiveSong();
+          if (song && song.annotations && song.annotations.breaths[key]) {
+            pushUndoSnapshot();
+            delete song.annotations.breaths[key];
+            saveState();
+            renderLyricsStanzas();
+            updateSongHeaderStatsOnly();
+            renderSongList();
+          }
+          return;
+        }
+
+        const removeVtagEl = e.target.closest('[data-remove-vtag]');
+        if (removeVtagEl) {
+          e.stopPropagation();
+          const key = removeVtagEl.getAttribute('data-remove-vtag');
+          const song = getActiveSong();
+          if (song && song.annotations && song.annotations.vocalTags[key]) {
+            pushUndoSnapshot();
+            delete song.annotations.vocalTags[key];
+            saveState();
+            renderLyricsStanzas();
+            updateSongHeaderStatsOnly();
+          }
+          return;
+        }
+
+        const charEl = e.target.closest('[data-char-key]');
+        if (!charEl) return;
+        const key = charEl.getAttribute('data-char-key');
+        const song = getActiveSong();
+        if (!song) return;
+
+        if (state.currentTool === 'breath') {
+          pushUndoSnapshot();
+          if (song.annotations.breaths[key] === state.breathType) {
+            delete song.annotations.breaths[key];
+          } else {
+            song.annotations.breaths[key] = state.breathType;
+          }
+          saveState();
+          renderLyricsStanzas();
+          updateSongHeaderStatsOnly();
+          renderSongList();
+        } else if (state.currentTool === 'vocaltag') {
+          pushUndoSnapshot();
+          if (song.annotations.vocalTags[key] === state.vocalTagText) {
+            delete song.annotations.vocalTags[key];
+          } else {
+            song.annotations.vocalTags[key] = state.vocalTagText;
+          }
+          saveState();
+          renderLyricsStanzas();
+          updateSongHeaderStatsOnly();
+        } else if (state.currentTool === 'eraser') {
+          pushUndoSnapshot();
+          delete song.annotations.breaths[key];
+          delete song.annotations.highlights[key];
+          delete song.annotations.vocalTags[key];
+          saveState();
+          renderLyricsStanzas();
+          updateSongHeaderStatsOnly();
+          renderSongList();
+        }
+      });
+
+      container.addEventListener('pointerdown', (e) => {
+        if (state.isReadOnly) return;
+        if (state.currentTool !== 'texthighlight' && state.currentTool !== 'eraser') return;
+        const charEl = e.target.closest('[data-char-key]');
+        if (!charEl) return;
+        isTextDragging = true;
+        pushUndoSnapshot();
+        applyTextHighlightOrErase(charEl);
+      });
+
+      container.addEventListener('pointerover', (e) => {
+        if (!isTextDragging || state.isReadOnly) return;
+        const charEl = e.target.closest('[data-char-key]');
+        if (!charEl) return;
+        applyTextHighlightOrErase(charEl);
+      });
+
+      window.addEventListener('pointerup', () => {
+        if (isTextDragging) {
+          isTextDragging = false;
+          saveState();
+          updateSongHeaderStatsOnly();
+        }
+      });
+    }
+
+    function applyTextHighlightOrErase(charEl) {
+      const key = charEl.getAttribute('data-char-key');
+      const song = getActiveSong();
+      if (!song || !key) return;
+
+      if (state.currentTool === 'texthighlight') {
+        song.annotations.highlights[key] = state.hlColor;
+        charEl.classList.remove('hl-yellow', 'hl-pink', 'hl-mint', 'hl-sky', 'hl-purple');
+        charEl.classList.add(`hl-${state.hlColor}`);
+      } else if (state.currentTool === 'eraser') {
+        delete song.annotations.highlights[key];
+        charEl.classList.remove('hl-yellow', 'hl-pink', 'hl-mint', 'hl-sky', 'hl-purple');
+      }
+    }
+
+    function setupDrawingCanvas() {
+      const canvas = document.getElementById('drawingCanvas');
+      if (!canvas) return;
+
+      canvas.addEventListener('pointerdown', (e) => {
+        if (state.isReadOnly) return;
+        if (!['pencil', 'freehighlight', 'eraser'].includes(state.currentTool)) return;
+        e.preventDefault();
+        const rect = canvas.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / canvas.width;
+        const y = (e.clientY - rect.top) / canvas.height;
+
+        const song = getActiveSong();
+        if (!song) return;
+        pushUndoSnapshot();
+
+        if (state.currentTool === 'eraser') {
+          isDrawing = true;
+          eraseStrokesNear(x, y);
+          return;
+        }
+
+        isDrawing = true;
+        currentStroke = {
+          tool: state.currentTool,
+          color: state.currentTool === 'freehighlight' ? state.hlHex : state.penColor,
+          size: state.currentTool === 'freehighlight' ? 18 : state.penSize,
+          points: [{ x, y }]
+        };
+        song.annotations.strokes.push(currentStroke);
+        redrawCanvasStrokes();
+      });
+
+      canvas.addEventListener('pointermove', (e) => {
+        if (!isDrawing || state.isReadOnly) return;
+        const rect = canvas.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / canvas.width;
+        const y = (e.clientY - rect.top) / canvas.height;
+
+        if (state.currentTool === 'eraser') {
+          eraseStrokesNear(x, y);
+          return;
+        }
+
+        if (currentStroke) {
+          currentStroke.points.push({ x, y });
+          redrawCanvasStrokes();
+        }
+      });
+
+      const finishStroke = () => {
+        if (isDrawing) {
+          isDrawing = false;
+          currentStroke = null;
+          saveState();
+        }
+      };
+
+      canvas.addEventListener('pointerup', finishStroke);
+      canvas.addEventListener('pointercancel', finishStroke);
+      window.addEventListener('resize', () => resizeAndRedrawCanvas());
+    }
+
+    function eraseStrokesNear(normX, normY) {
+      const song = getActiveSong();
+      if (!song || !song.annotations || !song.annotations.strokes) return;
+      const threshold = 0.03;
+      const beforeLen = song.annotations.strokes.length;
+      song.annotations.strokes = song.annotations.strokes.filter(st => {
+        return !st.points.some(pt => Math.hypot(pt.x - normX, pt.y - normY) < threshold);
+      });
+      if (song.annotations.strokes.length !== beforeLen) {
+        redrawCanvasStrokes();
+        saveState();
+      }
+    }
+
+    function resizeAndRedrawCanvas() {
+      const wrapper = document.getElementById('lyricSheetWrapper');
+      const canvas = document.getElementById('drawingCanvas');
+      if (!wrapper || !canvas) return;
+      if (canvas.width !== wrapper.clientWidth || canvas.height !== wrapper.clientHeight) {
+        canvas.width = wrapper.clientWidth;
+        canvas.height = wrapper.clientHeight;
+      }
+      redrawCanvasStrokes();
+    }
+
+    function redrawCanvasStrokes() {
+      const canvas = document.getElementById('drawingCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const song = getActiveSong();
+      if (!song || !song.annotations || !Array.isArray(song.annotations.strokes)) return;
+
+      song.annotations.strokes.forEach(stroke => {
+        if (!stroke.points || stroke.points.length === 0) return;
+        ctx.save();
+        ctx.beginPath();
+        ctx.strokeStyle = stroke.color;
+        ctx.lineWidth = stroke.size;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        const first = stroke.points[0];
+        ctx.moveTo(first.x * canvas.width, first.y * canvas.height);
+        for (let i = 1; i < stroke.points.length; i++) {
+          const pt = stroke.points[i];
+          ctx.lineTo(pt.x * canvas.width, pt.y * canvas.height);
+        }
+        if (stroke.points.length === 1) {
+          ctx.lineTo(first.x * canvas.width + 0.5, first.y * canvas.height + 0.5);
+        }
+        ctx.stroke();
+        ctx.restore();
+      });
+    }
+
+    function setPracticeTool(toolName) {
+      state.currentTool = toolName;
+
+      document.querySelectorAll('.tool-btn').forEach(btn => {
+        const t = btn.getAttribute('data-tool');
+        if (t === toolName) {
+          btn.className = 'tool-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition bg-violet-600 text-white border-violet-600 shadow-sm';
+        } else {
+          btn.className = 'tool-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition bg-white text-slate-700 border-slate-200 hover:bg-slate-50';
+        }
+      });
+
+      document.getElementById('subOptsBreath').className = toolName === 'breath' ? 'flex items-center gap-1.5 flex-wrap' : 'hidden';
+      document.getElementById('subOptsHighlight').className = (toolName === 'texthighlight' || toolName === 'freehighlight') ? 'flex items-center gap-2 flex-wrap' : 'hidden';
+      document.getElementById('subOptsPencil').className = toolName === 'pencil' ? 'flex items-center gap-2 flex-wrap' : 'hidden';
+      document.getElementById('subOptsVocalTag').className = toolName === 'vocaltag' ? 'flex items-center gap-1.5 flex-wrap' : 'hidden';
+      document.getElementById('subOptsEraser').className = toolName === 'eraser' ? 'flex items-center gap-2 flex-wrap' : 'hidden';
+
+      const canvas = document.getElementById('drawingCanvas');
+      if (!state.isReadOnly && (toolName === 'pencil' || toolName === 'freehighlight')) {
+        canvas.className = `canvas-active ${toolName === 'pencil' ? 'cursor-pencil' : 'cursor-highlighter'}`;
+      } else {
+        canvas.className = 'canvas-passthrough';
+      }
+
+      const container = document.getElementById('lyricsStanzaContainer');
+      if (container) {
+        container.className = `relative z-10 space-y-10 text-center mode-${state.currentTool} ${state.isReadOnly ? 'readonly-locked' : ''}`;
+      }
+    }
+
+    async function refreshAudioPlayerUI() {
+      const song = getActiveSong();
+      const audioElement = document.getElementById('vocalAudioElement');
+      const trackNameEl = document.getElementById('audioTrackName');
+      const typeBadgeEl = document.getElementById('audioSourceTypeBadge');
+      const driveInput = document.getElementById('driveAudioUrlInput');
+      const externalLinkBtn = document.getElementById('openDriveLinkExternalBtn');
+      const trackBadge = document.getElementById('audioTrackBadge');
+      const driveEmbedContainer = document.getElementById('googleDriveEmbedContainer');
+      const driveIframe = document.getElementById('googleDriveIframe');
+
+      if (!song) return;
+
+      driveInput.value = song.audioDriveUrl || '';
+
+      audioElement.pause();
+      document.getElementById('audioPlayPauseBtn').textContent = '▶';
+      document.getElementById('audioSeekBar').value = 0;
+      document.getElementById('audioTimeLabel').textContent = '00:00 / 00:00';
+      state.audioPitchSemitones = 0;
+      state.audioPlaybackRate = 1.0;
+      applyAudioSpeedAndPitch();
+
+      document.querySelectorAll('.rate-btn').forEach(b => {
+        const active = parseFloat(b.getAttribute('data-playback-rate')) === 1.0;
+        b.className = active
+          ? 'rate-btn px-2 py-1 text-[10px] font-bold bg-violet-600 text-white rounded'
+          : 'rate-btn px-2 py-1 text-[10px] font-bold text-slate-400 hover:text-white rounded';
+      });
+
+      if (currentAudioBlobUrl) {
+        URL.revokeObjectURL(currentAudioBlobUrl);
+        currentAudioBlobUrl = null;
+      }
+
+      if (song.audioDriveUrl) {
+        const parsedDrive = extractGoogleDriveAudioUrl(song.audioDriveUrl);
+        if (parsedDrive && parsedDrive.isDrive) {
+          driveEmbedContainer.classList.remove('hidden');
+          if (driveIframe.src !== parsedDrive.previewUrl) {
+            driveIframe.src = parsedDrive.previewUrl;
+          }
+        } else {
+          driveEmbedContainer.classList.add('hidden');
+          driveIframe.src = 'about:blank';
+        }
+      } else {
+        driveEmbedContainer.classList.add('hidden');
+        driveIframe.src = 'about:blank';
+      }
+
+      const localRec = await dbGetAudio(song.id);
+      if (localRec && localRec.blob) {
+        currentAudioBlobUrl = URL.createObjectURL(localRec.blob);
+        audioElement.src = currentAudioBlobUrl;
+        trackNameEl.textContent = `${localRec.name} (${localRec.date})`;
+        typeBadgeEl.textContent = '피치·배속 지원(내 기기 파일)';
+        typeBadgeEl.className = 'text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shrink-0';
+        externalLinkBtn.classList.toggle('hidden', !song.audioDriveUrl);
+        trackBadge.classList.remove('hidden');
+        return;
+      }
+
+      if (song.audioDriveUrl) {
+        const parsed = extractGoogleDriveAudioUrl(song.audioDriveUrl);
+        if (parsed) {
+          if (!parsed.isDrive) {
+            audioElement.src = parsed.streamUrl;
+          } else {
+            audioElement.removeAttribute('src');
+          }
+          trackNameEl.textContent = parsed.isDrive
+            ? '구글 드라이브 내장 플레이어가 위쪽에 열렸습니다 (다른 컴퓨터에서도 자동 연동됨)'
+            : '외부 오디오 링크 연동됨';
+          typeBadgeEl.textContent = 'Google Drive 연동됨';
+          typeBadgeEl.className = 'text-[10px] font-semibold px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30 shrink-0';
+          externalLinkBtn.classList.remove('hidden');
+          trackBadge.classList.remove('hidden');
+          return;
+        }
+      }
+
+      audioElement.removeAttribute('src');
+      trackNameEl.textContent = '등록된 녹음 파일이 없습니다';
+      typeBadgeEl.textContent = '미등록';
+      typeBadgeEl.className = 'text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-700 text-slate-300 shrink-0';
+      externalLinkBtn.classList.add('hidden');
+      trackBadge.classList.add('hidden');
+    }
+
+    function initAudioStudioEvents() {
+      const panel = document.getElementById('vocalAudioPanel');
+      const toggleBtn = document.getElementById('toggleAudioRecorderBarBtn');
+      const audioElement = document.getElementById('vocalAudioElement');
+      const playPauseBtn = document.getElementById('audioPlayPauseBtn');
+      const seekBar = document.getElementById('audioSeekBar');
+      const timeLabel = document.getElementById('audioTimeLabel');
+
+      toggleBtn.addEventListener('click', () => {
+        panel.classList.toggle('hidden');
+      });
+
+      const driveTab = document.getElementById('audioDriveInputTab');
+      const micTab = document.getElementById('audioMicRecordTab');
+      const uploadTab = document.getElementById('audioFileUploadTab');
+      const showDriveBtn = document.getElementById('showDriveTabBtn');
+      const showMicBtn = document.getElementById('showMicTabBtn');
+      const showUploadBtn = document.getElementById('showUploadTabBtn');
+
+      showDriveBtn.addEventListener('click', () => {
+        driveTab.classList.remove('hidden');
+        micTab.classList.add('hidden');
+        uploadTab.classList.add('hidden');
+        showDriveBtn.className = 'px-2.5 py-1 rounded-lg text-xs font-bold transition bg-white/20 text-white';
+        showMicBtn.className = 'px-2.5 py-1 rounded-lg text-xs font-bold transition bg-white/10 text-slate-300 hover:bg-white/20';
+        showUploadBtn.className = 'px-2.5 py-1 rounded-lg text-xs font-bold transition bg-white/10 text-slate-300 hover:bg-white/20';
+      });
+
+      showMicBtn.addEventListener('click', () => {
+        driveTab.classList.add('hidden');
+        micTab.classList.remove('hidden');
+        uploadTab.classList.add('hidden');
+        showDriveBtn.className = 'px-2.5 py-1 rounded-lg text-xs font-bold transition bg-white/10 text-slate-300 hover:bg-white/20';
+        showMicBtn.className = 'px-2.5 py-1 rounded-lg text-xs font-bold transition bg-white/20 text-white';
+        showUploadBtn.className = 'px-2.5 py-1 rounded-lg text-xs font-bold transition bg-white/10 text-slate-300 hover:bg-white/20';
+      });
+
+      showUploadBtn.addEventListener('click', () => {
+        driveTab.classList.add('hidden');
+        micTab.classList.add('hidden');
+        uploadTab.classList.remove('hidden');
+        showDriveBtn.className = 'px-2.5 py-1 rounded-lg text-xs font-bold transition bg-white/10 text-slate-300 hover:bg-white/20';
+        showMicBtn.className = 'px-2.5 py-1 rounded-lg text-xs font-bold transition bg-white/10 text-slate-300 hover:bg-white/20';
+        showUploadBtn.className = 'px-2.5 py-1 rounded-lg text-xs font-bold transition bg-white/20 text-white';
+      });
+
+      document.getElementById('saveDriveAudioUrlBtn').addEventListener('click', () => {
+        if (state.isReadOnly) {
+          showToast('🔒 열람 전용 모드에서는 음원 링크를 수정할 수 없습니다.');
+          return;
+        }
+        const val = document.getElementById('driveAudioUrlInput').value.trim();
+        const song = getActiveSong();
+        if (!song) return;
+        if (!val) {
+          showToast('⚠️ 구글 드라이브 공유 링크를 입력해 주세요.');
+          return;
+        }
+        song.audioDriveUrl = val;
+        saveState();
+        renderSongList();
+        refreshAudioPlayerUI();
+        showToast('☁️ 구글 드라이브 링크가 클라우드에 저장되어 다른 컴퓨터에서도 바로 열립니다!');
+      });
+
+      document.getElementById('clearDriveAudioUrlBtn').addEventListener('click', () => {
+        if (state.isReadOnly) return;
+        const song = getActiveSong();
+        if (!song) return;
+        document.getElementById('driveAudioUrlInput').value = '';
+        song.audioDriveUrl = '';
+        saveState();
+        renderSongList();
+        refreshAudioPlayerUI();
+        showToast('구글 드라이브 링크가 해제되었습니다.');
+      });
+
+      document.getElementById('openDriveLinkExternalBtn').addEventListener('click', () => {
+        const song = getActiveSong();
+        if (song && song.audioDriveUrl) window.open(song.audioDriveUrl, '_blank');
+      });
+
+      document.getElementById('openDriveNewTabBtn').addEventListener('click', () => {
+        const song = getActiveSong();
+        if (song && song.audioDriveUrl) window.open(song.audioDriveUrl, '_blank');
+      });
+
+      const startRecBtn = document.getElementById('startRecordingBtn');
+      const stopRecBtn = document.getElementById('stopRecordingBtn');
+      const timerBadge = document.getElementById('recordingTimerBadge');
+
+      startRecBtn.addEventListener('click', async () => {
+        if (state.isReadOnly) {
+          showToast('🔒 열람 전용 모드에서는 녹음할 수 없습니다.');
+          return;
+        }
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          showToast('⚠️ 이 브라우저 환경에서는 마이크 녹음 API를 지원하지 않습니다.');
+          return;
+        }
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          recordedChunks = [];
+          mediaRecorder = new MediaRecorder(stream);
+          mediaRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) recordedChunks.push(e.data);
+          };
+          mediaRecorder.onstop = async () => {
+            stream.getTracks().forEach(t => t.stop());
+            clearInterval(recordTimerInterval);
+            timerBadge.classList.add('hidden');
+            startRecBtn.classList.remove('hidden');
+            stopRecBtn.classList.add('hidden');
+
+            const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+            const song = getActiveSong();
+            if (song) {
+              await dbSaveAudio(song.id, blob, {
+                name: `${song.title} 연습 녹음`,
+                date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+              });
+              refreshAudioPlayerUI();
+              showToast('🎉 보컬 녹음이 저장되었습니다! 배속 유지 피치 조절(±6키)이 가능합니다.');
+            }
+          };
+
+          mediaRecorder.start();
+          recordSeconds = 0;
+          timerBadge.textContent = '● 00:00';
+          timerBadge.classList.remove('hidden');
+          startRecBtn.classList.add('hidden');
+          stopRecBtn.classList.remove('hidden');
+
+          recordTimerInterval = setInterval(() => {
+            recordSeconds++;
+            const m = String(Math.floor(recordSeconds / 60)).padStart(2, '0');
+            const s = String(recordSeconds % 60).padStart(2, '0');
+            timerBadge.textContent = `● ${m}:${s}`;
+          }, 1000);
+
+          showToast('🎙️ 녹음 시작! 가사를 보면서 노래를 불러보세요.');
+        } catch (err) {
+          console.warn('Microphone error:', err);
+          showToast('⚠️ 마이크 접근 권한이 허용되지 않았습니다.');
+        }
+      });
+
+      stopRecBtn.addEventListener('click', () => {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+          mediaRecorder.stop();
+        }
+      });
+
+      document.getElementById('localAudioFileInput').addEventListener('change', async (e) => {
+        if (state.isReadOnly) {
+          showToast('🔒 열람 전용 모드에서는 음원 파일을 올릴 수 없습니다.');
+          return;
+        }
+        const file = e.target.files[0];
+        if (!file) return;
+        const song = getActiveSong();
+        if (!song) return;
+
+        await dbSaveAudio(song.id, file, {
+          name: file.name,
+          date: new Date().toLocaleDateString()
+        });
+        refreshAudioPlayerUI();
+        showToast(`📂 [${file.name}] 등록 완료! 이제 노래를 들으며 가사에 체크해도 음악이 끊기지 않습니다.`);
+        e.target.value = '';
+      });
+
+      playPauseBtn.addEventListener('click', async () => {
+        const song = getActiveSong();
+        if (!audioElement.src) {
+          if (song && song.audioDriveUrl) {
+            showToast('💡 구글 드라이브 음원은 바로 위쪽의 [Google Drive 공식 내장 플레이어] 재생(▶) 버튼을 눌러주세요!');
+            return;
+          }
+          showToast('재생할 녹음 파일이 없습니다. [📂 기기 파일 업로드] 또는 [🔴 마이크 직접 녹음]을 이용해 주세요.');
+          return;
+        }
+        if (audioElement.paused) {
+          await ensureTonePitchGraph();
+          applyAudioSpeedAndPitch();
+          audioElement.play().then(() => {
+            playPauseBtn.textContent = '⏸';
+          }).catch(err => {
+            console.warn('Audio play error:', err);
+            showToast('⚠️ 음원을 재생할 수 없습니다. [📂 기기 파일 업로드]로 파일을 등록해 보세요.');
+          });
+        } else {
+          audioElement.pause();
+          playPauseBtn.textContent = '▶';
+        }
+      });
+
+      audioElement.addEventListener('timeupdate', () => {
+        if (audioElement.duration) {
+          const cur = audioElement.currentTime;
+          const dur = audioElement.duration;
+          seekBar.value = (cur / dur) * 100;
+          const format = (t) => {
+            const m = String(Math.floor(t / 60)).padStart(2, '0');
+            const s = String(Math.floor(t % 60)).padStart(2, '0');
+            return `${m}:${s}`;
+          };
+          timeLabel.textContent = `${format(cur)} / ${format(dur)}`;
+        }
+      });
+
+      audioElement.addEventListener('ended', () => {
+        playPauseBtn.textContent = '▶';
+        seekBar.value = 0;
+      });
+
+      seekBar.addEventListener('input', (e) => {
+        if (audioElement.duration) {
+          audioElement.currentTime = (parseFloat(e.target.value) / 100) * audioElement.duration;
+        }
+      });
+
+      document.querySelectorAll('.rate-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const rate = parseFloat(btn.getAttribute('data-playback-rate')) || 1.0;
+          state.audioPlaybackRate = rate;
+          applyAudioSpeedAndPitch();
+          document.querySelectorAll('.rate-btn').forEach(b => {
+            const active = parseFloat(b.getAttribute('data-playback-rate')) === rate;
+            b.className = active
+              ? 'rate-btn px-2 py-1 text-[10px] font-bold bg-violet-600 text-white rounded'
+              : 'rate-btn px-2 py-1 text-[10px] font-bold text-slate-400 hover:text-white rounded';
+          });
+          showToast(`⏩ 재생 속도: ${rate}x (음원 피치는 그대로 유지됨)`);
+        });
+      });
+
+      document.getElementById('audioPitchDownBtn').addEventListener('click', async () => {
+        if (state.audioPitchSemitones > -6) {
+          await ensureTonePitchGraph();
+          state.audioPitchSemitones--;
+          applyAudioSpeedAndPitch();
+          state.transposeSemitones = state.audioPitchSemitones;
+          updateTransposeUI();
+          showToast(`🎵 배속 유지 피치 조절: ${state.audioPitchSemitones}키 (${Math.abs(state.audioPitchSemitones)}반음 내림 · 최대 -6키)`);
+        } else {
+          showToast('⚠️ 피치 조절은 최대 -6키~+6키까지 가능합니다.');
+        }
+      });
+
+      document.getElementById('audioPitchUpBtn').addEventListener('click', async () => {
+        if (state.audioPitchSemitones < 6) {
+          await ensureTonePitchGraph();
+          state.audioPitchSemitones++;
+          applyAudioSpeedAndPitch();
+          state.transposeSemitones = state.audioPitchSemitones;
+          updateTransposeUI();
+          showToast(`🎵 배속 유지 피치 조절: +${state.audioPitchSemitones}키 (${state.audioPitchSemitones}반음 올림 · 최대 +6키)`);
+        } else {
+          showToast('⚠️ 피치 조절은 최대 -6키~+6키까지 가능합니다.');
+        }
+      });
+
+      document.getElementById('audioPitchResetBtn').addEventListener('click', () => {
+        state.audioPitchSemitones = 0;
+        applyAudioSpeedAndPitch();
+        state.transposeSemitones = 0;
+        updateTransposeUI();
+        showToast('🎵 음원 피치가 원키(0)로 리셋되었습니다.');
+      });
+
+      document.getElementById('downloadAudioTrackBtn').addEventListener('click', async () => {
+        const song = getActiveSong();
+        if (!song) return;
+        const localRec = await dbGetAudio(song.id);
+        if (localRec && localRec.blob) {
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(localRec.blob);
+          a.download = `${song.title}_연습음원`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          showToast('음원 파일이 다운로드되었습니다.');
+          return;
+        }
+        if (song.audioDriveUrl) {
+          window.open(song.audioDriveUrl, '_blank');
+          return;
+        }
+        showToast('다운로드할 녹음 파일이 없습니다.');
+      });
+
+      document.getElementById('deleteAudioTrackBtn').addEventListener('click', async () => {
+        if (state.isReadOnly) return;
+        const song = getActiveSong();
+        if (!song) return;
+        await dbDeleteAudio(song.id);
+        song.audioDriveUrl = '';
+        saveState();
+        renderSongList();
+        refreshAudioPlayerUI();
+        showToast('현재 곡의 녹음/음원이 삭제되었습니다.');
+      });
+    }
+
+    function openShareLockModal() {
+      const modal = document.getElementById('shareLockModal');
+      const card = document.getElementById('permissionStatusCard');
+      const title = document.getElementById('modalPermTitle');
+      const badge = document.getElementById('modalPermBadge');
+      const desc = document.getElementById('modalPermDesc');
+      const ownerControls = document.getElementById('ownerLockControls');
+      const guestControls = document.getElementById('guestUnlockControls');
+
+      const baseUrl = window.location.href.split('?')[0].split('#')[0];
+      const shareUrl = `${baseUrl}?mode=readonly&song=${encodeURIComponent(state.activeSongId)}#readonly`;
+      document.getElementById('shareReadOnlyUrlInput').value = shareUrl;
+
+      if (state.isReadOnly) {
+        card.className = 'p-4 rounded-xl border bg-amber-50/80 border-amber-200 space-y-1';
+        title.className = 'text-xs font-extrabold text-amber-900';
+        title.textContent = '🔒 현재: 공유 열람 전용 (수정 잠금됨)';
+        badge.className = 'text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-200 text-amber-900';
+        badge.textContent = 'READ-ONLY';
+        desc.className = 'text-xs text-amber-800';
+        desc.textContent = '다른 사람이 내 가사나 호흡·형광펜 필기를 수정할 수 없도록 보호 중입니다.';
+        ownerControls.classList.add('hidden');
+        guestControls.classList.remove('hidden');
+        document.getElementById('unlockPinInput').value = '';
+      } else {
+        card.className = 'p-4 rounded-xl border bg-emerald-50/70 border-emerald-200 space-y-1';
+        title.className = 'text-xs font-extrabold text-emerald-800';
+        title.textContent = '🔓 현재: 작성자(나) 편집 가능 모드';
+        badge.className = 'text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-900';
+        badge.textContent = 'OWNER';
+        desc.className = 'text-xs text-emerald-700';
+        desc.textContent = '가사 추가·수정, 호흡(∨) 체크, 형광펜·연필 필기를 자유롭게 수정할 수 있습니다.';
+        ownerControls.classList.remove('hidden');
+        guestControls.classList.add('hidden');
+        document.getElementById('ownerPinSetupInput').value = '';
+      }
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeShareLockModal() {
+      const modal = document.getElementById('shareLockModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function copyTextSafe(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); } catch (e) {}
+      document.body.removeChild(ta);
+    }
+
+    function ensureAudioContext() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContextClass();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function playReferencePitch() {
+      ensureAudioContext();
+      const song = getActiveSong();
+      const baseFreq = (song && song.pitchFreq) || 293.66;
+      const transposedFreq = baseFreq * Math.pow(2, state.transposeSemitones / 12);
+
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(transposedFreq, now);
+
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.exponentialRampToValueAtTime(0.25, now + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 1.4);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now);
+      osc.stop(now + 1.45);
+
+      showToast(`🎵 기준음 재생 (${song.pitchName || 'D4'}, 키 조절: ${state.transposeSemitones >= 0 ? '+' + state.transposeSemitones : state.transposeSemitones})`);
+    }
+
+    function toggleMetronome() {
+      if (state.metronomePlaying) {
+        clearInterval(metronomeTimer);
+        metronomeTimer = null;
+        state.metronomePlaying = false;
+        document.getElementById('metronomeDot').className = 'w-2 h-2 rounded-full bg-slate-300';
+        return;
+      }
+
+      ensureAudioContext();
+      const song = getActiveSong();
+      const bpm = (song && song.bpm) || 120;
+      const intervalMs = (60 / bpm) * 1000;
+
+      state.metronomePlaying = true;
+      const dot = document.getElementById('metronomeDot');
+      let beat = 0;
+
+      const tick = () => {
+        if (!state.metronomePlaying) return;
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.frequency.setValueAtTime(beat % 4 === 0 ? 1050 : 750, now);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.045);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.05);
+
+        dot.className = beat % 4 === 0 ? 'w-2 h-2 rounded-full bg-red-500 scale-125 transition' : 'w-2 h-2 rounded-full bg-violet-500 transition';
+        beat++;
+      };
+
+      tick();
+      metronomeTimer = setInterval(tick, intervalMs);
+    }
+
+    function updateTransposeUI() {
+      const label = document.getElementById('currentKeyLabel');
+      const s = state.transposeSemitones;
+      label.textContent = s === 0 ? '원키 (0)' : (s > 0 ? `+${s}키 (♯)` : `${s}키 (♭)`);
+    }
+
+    function parseRawLyricsToStanzas(rawText) {
+      const blocks = String(rawText || '').trim().split(/\n\s*\n/).map(b => b.trim()).filter(Boolean);
+      if (blocks.length === 0) return [{ orig: '가사를 입력해 주세요', pron: '', trans: '', furi: '' }];
+      return blocks.map(block => {
+        const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
+        const orig = lines[0] || '';
+        const pron = lines[1] || '';
+        const trans = lines[2] || '';
+        const furi = lines[3] || autoHiraganaFromPron(orig, pron);
+        return { orig, pron, trans, furi };
+      });
+    }
+
+    function stanzasToRawText(stanzas) {
+      return (stanzas || []).map(st => {
+        const arr = [st.orig, st.pron, st.trans];
+        if (st.furi) arr.push(st.furi);
+        return arr.filter(Boolean).join('\n');
+      }).join('\n\n');
+    }
+
+    function openAddSongModal(editSong) {
+      if (state.isReadOnly) {
+        openShareLockModal();
+        return;
+      }
+      const modal = document.getElementById('songModal');
+      const deleteBtn = document.getElementById('deleteSongBtn');
+
+      if (editSong) {
+        state.editingSongId = editSong.id;
+        document.getElementById('songModalTitle').textContent = '노래 및 가사 수정하기';
+        document.getElementById('formSongCategory').value = editSong.category;
+        document.getElementById('formSongTitle').value = editSong.title;
+        document.getElementById('formSongArtist').value = editSong.artist;
+        document.getElementById('formSongKeyInfo').value = editSong.keyInfo || '';
+        document.getElementById('formSongBpm').value = editSong.bpm || 120;
+        document.getElementById('formSongTip').value = editSong.vocalTip || '';
+        document.getElementById('formSongLyrics').value = stanzasToRawText(editSong.stanzas);
+        deleteBtn.classList.toggle('hidden', state.songs.length <= 1);
+      } else {
+        state.editingSongId = null;
+        document.getElementById('songModalTitle').textContent = '새 연습곡 추가하기';
+        document.getElementById('formSongCategory').value = state.categoryFilter === 'ALL' ? 'J-POP' : state.categoryFilter;
+        document.getElementById('formSongTitle').value = '';
+        document.getElementById('formSongArtist').value = '';
+        document.getElementById('formSongKeyInfo').value = '';
+        document.getElementById('formSongBpm').value = 120;
+        document.getElementById('formSongTip').value = '';
+        document.getElementById('formSongLyrics').value = '';
+        deleteBtn.classList.add('hidden');
+      }
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeSongModal() {
+      const modal = document.getElementById('songModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function saveSongFromModal() {
+      if (state.isReadOnly) return;
+      const category = document.getElementById('formSongCategory').value;
+      const title = document.getElementById('formSongTitle').value.trim();
+      const artist = document.getElementById('formSongArtist').value.trim() || 'Unknown Artist';
+      const keyInfo = document.getElementById('formSongKeyInfo').value.trim() || 'Standard Key';
+      const bpm = parseInt(document.getElementById('formSongBpm').value, 10) || 120;
+      const vocalTip = document.getElementById('formSongTip').value.trim();
+      const rawLyrics = document.getElementById('formSongLyrics').value;
+
+      if (!title) {
+        showToast('⚠️ 노래 제목을 입력해 주세요.');
+        return;
+      }
+
+      const stanzas = parseRawLyricsToStanzas(rawLyrics);
+
+      if (state.editingSongId) {
+        const target = state.songs.find(s => s.id === state.editingSongId);
+        if (target) {
+          target.category = category;
+          target.title = title;
+          target.artist = artist;
+          target.keyInfo = keyInfo;
+          target.bpm = bpm;
+          target.vocalTip = vocalTip;
+          target.stanzas = stanzas;
+        }
+        saveState();
+        closeSongModal();
+        renderSongList();
+        renderActiveSongStudio({ reloadAudio: false });
+        showToast('☁️ 노래 및 가사 정보가 클라우드에 저장되었습니다!');
+      } else {
+        const newSong = {
+          id: 'song-' + Date.now(),
+          category,
+          title,
+          artist,
+          keyInfo,
+          bpm,
+          pitchFreq: 261.63,
+          pitchName: 'C4 (도)',
+          favorite: false,
+          practicing: true,
+          vocalTip: vocalTip || '숨쉬는 구간(∨)과 형광펜을 표시하며 연습해 보세요.',
+          memo: '',
+          stanzas,
+          annotations: { breaths: {}, highlights: {}, vocalTags: {}, strokes: [] }
+        };
+        state.songs.unshift(newSong);
+        state.activeSongId = newSong.id;
+        state.categoryFilter = category;
+        updateCategoryTabUI();
+        saveState();
+        closeSongModal();
+        renderSongList();
+        renderActiveSongStudio({ reloadAudio: true });
+        showToast('☁️ 새 연습곡이 추가되어 클라우드에 저장되었습니다!');
+      }
+    }
+
+    function updateCategoryTabUI() {
+      document.querySelectorAll('.cat-tab').forEach(btn => {
+        const cat = btn.getAttribute('data-category');
+        if (cat === state.categoryFilter) {
+          btn.className = 'cat-tab py-1.5 px-2 rounded-lg text-xs font-bold transition bg-white text-violet-700 shadow-sm';
+        } else {
+          btn.className = 'cat-tab py-1.5 px-2 rounded-lg text-xs font-bold transition text-slate-600 hover:text-slate-900';
+        }
+      });
+    }
+
+    function closeMobileSidebar() {
+      document.getElementById('songSidebar').classList.add('-translate-x-full');
+      document.getElementById('sidebarBackdrop').classList.add('hidden');
+    }
+
+    const PRESET_AUTOFILL_DB = {
+      'yoasobi-idol': {
+        category: 'J-POP',
+        title: 'アイドル (아이돌)',
+        artist: 'YOASOBI (요아소비)',
+        keyInfo: 'C# Major · 최고음 3옥타브 레#(D#5)',
+        bpm: 166,
+        tip: '빠른 랩처럼 몰아치는 도입부 딕션과 후렴 전 스타카토 호흡 컨트롤이 핵심입니다.',
+        lyrics: `無敵の笑顔で荒らすメディア\n무테키노 에가오데 아라스 메디아\n무적의 미소로 미디어를 뒤흔들어\nむてきの えがおで あらす めでぃあ\n\n知りたいその秘密ミステリアス\n시리타이 소노 히미츠 미스테리아스\n알고 싶어 그 비밀 미스테리어스\nしりたい その ひみつ みすてりあす\n\n完璧で嘘つきな君は\n칸페키데 우소츠키나 키미와\n완벽하고 거짓말쟁이인 너는\nかんぺきで うそつきな きみは\n\n天才的なアイドル様\n텐사이테키나 아이도루사마\n천재적인 아이돌님\nてんさいてきな あいどるさま`
+      },
+      'yoasobi-yoru': {
+        category: 'J-POP',
+        title: '夜に駆ける (밤을 달리다)',
+        artist: 'YOASOBI (요아소비)',
+        keyInfo: 'Eb Major · 최고음 3옥타브 파(F5)',
+        bpm: 130,
+        tip: '도입부 무반주 보컬의 첫음 음정을 정확히 잡고, 빠른 16분음표 멜로디에서 숨이 차오르지 않게 짧게 호흡(∨)하세요.',
+        lyrics: `沈むように溶けてゆくように\n시즈무요오니 토케테유쿠요오니\n가라앉듯이 녹아내리듯이\nしずむように とけてゆくように\n\n二人だけの空が広がる夜に\n후타리다케노 소라가 히로가루 요루니\n둘만의 하늘이 펼쳐지는 밤에\nふたりだけの そらが ひろがる よるに`
+      },
+      'yuuri-dryflower': {
+        category: 'J-POP',
+        title: 'ドライフラワー (드라이플라워)',
+        artist: 'Yuuri (유우리)',
+        keyInfo: 'G Major · 가성 및 진성 감정선 전환',
+        bpm: 74,
+        tip: '후렴 "코에모 카오모" 구간에서 목을 조이지 않고 가성으로 자연스럽게 넘기는 연결이 중요합니다.',
+        lyrics: `多分、私じゃなくていいね\n타분 와타시자 나쿠테 이이네\n아마도 내가 아니어도 괜찮겠지\nたぶん わたしじゃ なくて いいね\n\n声も顔も不器用なとこも\n코에모 카오모 부키요오나 토코모\n목소리도 얼굴도 서툰 모습도\nこえも かおも ぶきような とこも`
+      },
+      'tuki-bansanka': {
+        category: 'J-POP',
+        title: '晩餐歌 (만찬가)',
+        artist: 'tuki. (츠키)',
+        keyInfo: 'G Major · 섬세한 호흡과 고음 도약',
+        bpm: 102,
+        tip: '도입부는 말하는 듯 담담하게 시작해 후렴 고음 도약에서 호흡 압력을 탄탄하게 유지하세요.',
+        lyrics: `君を泣かすから だから一緒には居られないな\n키미오 나카스카라 다카라 잇쇼니와 이라레나이나\n너를 울릴 테니까 그래서 함께 있을 순 없겠네\nきみを なかすから だから いっしょには いられないな`
+      },
+      'higedan-pretender': {
+        category: 'J-POP',
+        title: 'Pretender (프리텐더)',
+        artist: 'Official髭男dism (오피셜히게단디즘)',
+        keyInfo: 'Ab Major · 최고음 3옥타브 레#(D#5)',
+        bpm: 92,
+        tip: '후렴 "굽바이(グッバイ)" 고음 롱톤 전에 반드시 깊은 복식호흡(∨∨)을 확보하세요.',
+        lyrics: `グッバイ 君の運命のヒトは僕じゃない\n굽바이 키미노 운메이노 히토와 보쿠자 나이\n굿바이 너의 운명의 사람은 내가 아니야\nぐっばい きみの うんめいの ひとは ぼくじゃ ない`
+      },
+      'sung-every': {
+        category: 'K-POP',
+        title: '너의 모든 순간',
+        artist: '성시경',
+        keyInfo: 'F# Major · 중저음 공명과 부드러운 두성 연결',
+        bpm: 66,
+        tip: '성시경 특유의 따뜻한 미성과 호흡 섞인 소리를 위해 첫 음절 자음을 부드럽게 발음하세요.',
+        lyrics: `이윽고 내가 한눈에 너를 알아봤을 때\n[발음 팁] 이윽꼬 내가 한누네 너를 아라봐쓸 때\n도입부 — 숨소리를 살짝 섞어 나지막하게 시작`
+      },
+      'charlie-dangerously': {
+        category: 'POP',
+        title: 'Dangerously',
+        artist: 'Charlie Puth (찰리 푸스)',
+        keyInfo: 'F# Minor · 강한 믹스보이스 벨팅 & 리듬',
+        bpm: 112,
+        tip: '영어 자음 악센트를 강하게 짚어주고, 후렴 고음에서 날카로운 전두동 공명을 활용하세요.',
+        lyrics: `This is gonna hurt, but I blame myself first\n디스 이즈 거너 헐트, 벗 아이 블레임 마이셀프 퍼스트\n이건 아플 거야, 하지만 내 탓을 먼저 해`
+      }
+    };
+
+    function initEventListeners() {
+      document.getElementById('mobileSidebarToggle').addEventListener('click', () => {
+        document.getElementById('songSidebar').classList.toggle('-translate-x-full');
+        document.getElementById('sidebarBackdrop').classList.toggle('hidden');
+      });
+      document.getElementById('sidebarBackdrop').addEventListener('click', closeMobileSidebar);
+
+      // Mobile Connection Guide & QR Modal Controls
+      const mobileGuideModal = document.getElementById('mobileGuideModal');
+      document.getElementById('openMobileGuideModalBtn').addEventListener('click', () => {
+        const curUrl = window.location.href.split('?')[0].split('#')[0];
+        document.getElementById('currentAppUrlInput').value = curUrl;
+        const qrImg = document.getElementById('mobileQrImage');
+        qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(curUrl)}`;
+        mobileGuideModal.classList.remove('hidden');
+        mobileGuideModal.classList.add('flex');
+      });
+      document.getElementById('closeMobileGuideModalBtn').addEventListener('click', () => {
+        mobileGuideModal.classList.add('hidden');
+        mobileGuideModal.classList.remove('flex');
+      });
+      document.getElementById('copyCurrentAppUrlBtn').addEventListener('click', () => {
+        copyTextSafe(document.getElementById('currentAppUrlInput').value);
+        showToast('📱 사이트 주소가 복사되었습니다! 카카오톡 나에게 보내기로 스마트폰에서 열어보세요.');
+      });
+
+      // Save Verification Modal Controls
+      const saveCheckModal = document.getElementById('saveCheckModal');
+      document.getElementById('openSaveCheckModalBtn').addEventListener('click', () => {
+        updateSaveCheckModalStats();
+        saveCheckModal.classList.remove('hidden');
+        saveCheckModal.classList.add('flex');
+      });
+      document.getElementById('closeSaveCheckModalBtn').addEventListener('click', () => {
+        saveCheckModal.classList.add('hidden');
+        saveCheckModal.classList.remove('flex');
+      });
+
+      document.getElementById('manualForceSaveBtn').addEventListener('click', async () => {
+        await pushStateToCloudImmediate();
+        showToast('✅ 지금 즉시 클라우드 및 기기에 안전하게 저장되었습니다!');
+      });
+
+      document.getElementById('forceCloudSaveNowBtn').addEventListener('click', async () => {
+        await pushStateToCloudImmediate();
+        showToast('☁️ 클라우드 서버에 최신 상태가 즉시 저장되었습니다!');
+      });
+
+      document.getElementById('forceCloudPullNowBtn').addEventListener('click', async () => {
+        if (!db || !currentUser) {
+          showToast('⚠️ 현재 로컬 저장소 모드입니다.');
+          return;
+        }
+        try {
+          const studioDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'vocal_studio_sync', 'main_workspace');
+          const snap = await getDoc(studioDocRef);
+          if (snap.exists() && snap.data().songsJson) {
+            applyCloudDataToState(snap.data());
+            showToast('🔄 클라우드에서 최신 저장 데이터를 불러왔습니다!');
+          } else {
+            showToast('클라우드에 저장된 데이터가 없습니다.');
+          }
+        } catch (err) {
+          showToast('⚠️ 불러오기 중 오류가 발생했습니다.');
+        }
+      });
+
+      // Backup Export / Import JSON
+      document.getElementById('exportBackupFileBtn').addEventListener('click', () => {
+        const dataStr = JSON.stringify({
+          songs: state.songs,
+          activeSongId: state.activeSongId,
+          exportedAt: new Date().toISOString()
+        }, null, 2);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `보컬노트_전체백업_${new Date().toISOString().slice(0,10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        showToast('⬇️ 내 보컬 노트 백업 파일(.json)이 다운로드되었습니다!');
+      });
+
+      document.getElementById('importBackupFileInput').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = async (ev) => {
+          try {
+            const parsed = JSON.parse(ev.target.result);
+            if (parsed && Array.isArray(parsed.songs) && parsed.songs.length > 0) {
+              state.songs = parsed.songs;
+              state.activeSongId = parsed.activeSongId || state.songs[0].id;
+              saveState();
+              await pushStateToCloudImmediate();
+              renderSongList();
+              renderActiveSongStudio({ reloadAudio: true });
+              showToast('⬆️ 백업 파일 복원 및 클라우드 동기화가 완료되었습니다!');
+            }
+          } catch (err) {
+            showToast('⚠️ 올바른 백업 파일이 아닙니다.');
+          }
+        };
+        reader.readAsText(file);
+        e.target.value = '';
+      });
+
+      const searchInput = document.getElementById('songSearchInput');
+      const clearBtn = document.getElementById('clearSearchBtn');
+      searchInput.addEventListener('input', () => {
+        state.searchQuery = searchInput.value;
+        clearBtn.classList.toggle('hidden', !state.searchQuery);
+        if (state.searchQuery.trim() !== '') {
+          state.categoryFilter = 'ALL';
+          updateCategoryTabUI();
+        }
+        renderSongList();
+      });
+      clearBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        state.searchQuery = '';
+        clearBtn.classList.add('hidden');
+        renderSongList();
+      });
+
+      document.querySelectorAll('.cat-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.categoryFilter = btn.getAttribute('data-category');
+          updateCategoryTabUI();
+          renderSongList();
+        });
+      });
+
+      document.querySelectorAll('.jpop-view-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.jpopViewMode = btn.getAttribute('data-jpop-tab');
+          updateJpopViewTabUI();
+          renderLyricsStanzas();
+        });
+      });
+
+      document.getElementById('toggleFuriMeaningBtn').addEventListener('click', (e) => {
+        state.showFuriMeaning = !state.showFuriMeaning;
+        e.currentTarget.textContent = state.showFuriMeaning ? '해석 함께 보기: ON' : '해석 함께 보기: OFF';
+        e.currentTarget.className = state.showFuriMeaning
+          ? 'px-2.5 py-1 rounded-lg text-[11px] font-bold bg-violet-600 text-white transition'
+          : 'px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-200 text-slate-700 hover:bg-violet-100 hover:text-violet-700 transition';
+        renderLyricsStanzas();
+      });
+
+      document.getElementById('openShareLockModalBtn').addEventListener('click', openShareLockModal);
+      document.getElementById('unlockFromBannerBtn').addEventListener('click', openShareLockModal);
+      document.getElementById('unlockFromToolbarBtn').addEventListener('click', openShareLockModal);
+      document.getElementById('closeShareLockModalBtn').addEventListener('click', closeShareLockModal);
+
+      document.getElementById('copyShareLinkBtn').addEventListener('click', () => {
+        copyTextSafe(document.getElementById('shareReadOnlyUrlInput').value);
+        showToast('🔗 읽기 전용 공유 링크가 복사되었습니다!');
+      });
+
+      document.getElementById('saveOwnerPinBtn').addEventListener('click', () => {
+        const newPin = document.getElementById('ownerPinSetupInput').value.trim();
+        if (!newPin || newPin.length < 2) {
+          showToast('⚠️ 2자리 이상의 비밀번호(PIN)를 입력해 주세요.');
+          return;
+        }
+        state.ownerPin = newPin;
+        saveState();
+        document.getElementById('ownerPinSetupInput').value = '';
+        showToast('🔑 작성자 비밀번호(PIN)가 변경되었습니다.');
+      });
+
+      document.getElementById('activateReadOnlyLockBtn').addEventListener('click', () => {
+        state.isReadOnly = true;
+        saveState();
+        updateReadOnlyUI();
+        closeShareLockModal();
+        showToast('🔒 열람 전용(수정 잠금) 모드로 전환되었습니다.');
+      });
+
+      document.getElementById('confirmUnlockBtn').addEventListener('click', () => {
+        const entered = document.getElementById('unlockPinInput').value.trim();
+        if (entered === state.ownerPin) {
+          state.isReadOnly = false;
+          saveState();
+          updateReadOnlyUI();
+          closeShareLockModal();
+          showToast('🔓 작성자 인증 완료! 편집 모드로 전환되었습니다.');
+        } else {
+          showToast('❌ 비밀번호가 일치하지 않습니다. (기본값: 1234)');
+        }
+      });
+
+      document.querySelectorAll('.status-chip').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.statusFilter = btn.getAttribute('data-status-filter');
+          document.querySelectorAll('.status-chip').forEach(b => {
+            const active = b.getAttribute('data-status-filter') === state.statusFilter;
+            b.className = `status-chip flex-1 py-1 px-2 rounded-lg text-[11px] font-semibold transition ${
+              active ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }`;
+          });
+          renderSongList();
+        });
+      });
+
+      document.querySelectorAll('.tool-btn').forEach(btn => {
+        btn.addEventListener('click', () => setPracticeTool(btn.getAttribute('data-tool')));
+      });
+
+      document.querySelectorAll('.breath-type-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.breathType = btn.getAttribute('data-breath-type');
+          document.querySelectorAll('.breath-type-btn').forEach(b => {
+            const isSel = b.getAttribute('data-breath-type') === state.breathType;
+            b.classList.toggle('ring-2', isSel);
+            b.classList.toggle('ring-offset-1', isSel);
+            b.classList.toggle('ring-slate-900', isSel);
+          });
+        });
+      });
+
+      document.querySelectorAll('.hl-color-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.hlColor = btn.getAttribute('data-hl-color');
+          state.hlHex = btn.getAttribute('data-hex');
+          document.querySelectorAll('.hl-color-btn').forEach(b => {
+            const isSel = b.getAttribute('data-hl-color') === state.hlColor;
+            b.classList.toggle('border-slate-900', isSel);
+            b.classList.toggle('border-transparent', !isSel);
+          });
+        });
+      });
+
+      document.querySelectorAll('.pen-color-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.penColor = btn.getAttribute('data-pen-color');
+          document.querySelectorAll('.pen-color-btn').forEach(b => {
+            const isSel = b.getAttribute('data-pen-color') === state.penColor;
+            b.classList.toggle('ring-2', isSel);
+            b.classList.toggle('ring-offset-1', isSel);
+            b.classList.toggle('ring-slate-800', isSel);
+          });
+        });
+      });
+
+      document.getElementById('pencilSizeSlider').addEventListener('input', (e) => {
+        state.penSize = parseFloat(e.target.value) || 2.5;
+      });
+
+      document.querySelectorAll('.vtag-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.vocalTagText = btn.getAttribute('data-vtag');
+          document.querySelectorAll('.vtag-btn').forEach(b => {
+            const isSel = b.getAttribute('data-vtag') === state.vocalTagText;
+            b.className = isSel
+              ? 'vtag-btn px-2 py-0.5 rounded-full text-xs font-bold bg-amber-500 text-white'
+              : 'vtag-btn px-2 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200';
+          });
+        });
+      });
+
+      document.getElementById('undoActionBtn').addEventListener('click', () => {
+        if (state.isReadOnly) return;
+        const last = state.undoStack.pop();
+        if (!last) {
+          showToast('되돌릴 필기 내역이 없습니다.');
+          return;
+        }
+        const target = state.songs.find(s => s.id === last.songId);
+        if (target) {
+          target.annotations = last.annotations;
+          saveState();
+          renderLyricsStanzas();
+          updateSongHeaderStatsOnly();
+          renderSongList();
+          showToast('이전 필기 상태로 되돌렸습니다.');
+        }
+      });
+
+      document.getElementById('clearAllMarksBtn').addEventListener('click', () => {
+        if (state.isReadOnly) return;
+        const song = getActiveSong();
+        if (!song) return;
+        pushUndoSnapshot();
+        song.annotations = { breaths: {}, highlights: {}, vocalTags: {}, strokes: [] };
+        saveState();
+        renderLyricsStanzas();
+        updateSongHeaderStatsOnly();
+        renderSongList();
+        showToast('현재 곡의 호흡 체크와 필기를 모두 지웠습니다.');
+      });
+
+      document.getElementById('toggleOrigBtn').addEventListener('click', (e) => {
+        state.showOrig = !state.showOrig;
+        e.currentTarget.textContent = `원문 ${state.showOrig ? 'ON' : 'OFF'}`;
+        e.currentTarget.className = `px-2 py-1 rounded-lg text-[11px] font-bold transition ${state.showOrig ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-400'}`;
+        renderLyricsStanzas();
+      });
+      document.getElementById('togglePronBtn').addEventListener('click', (e) => {
+        state.showPron = !state.showPron;
+        e.currentTarget.textContent = `발음 ${state.showPron ? 'ON' : 'OFF'}`;
+        e.currentTarget.className = `px-2 py-1 rounded-lg text-[11px] font-bold transition ${state.showPron ? 'bg-slate-700 text-white' : 'bg-slate-100 text-slate-400'}`;
+        renderLyricsStanzas();
+      });
+      document.getElementById('toggleTransBtn').addEventListener('click', (e) => {
+        state.showTrans = !state.showTrans;
+        e.currentTarget.textContent = `해석 ${state.showTrans ? 'ON' : 'OFF'}`;
+        e.currentTarget.className = `px-2 py-1 rounded-lg text-[11px] font-bold transition ${state.showTrans ? 'bg-violet-600 text-white' : 'bg-slate-100 text-slate-400'}`;
+        renderLyricsStanzas();
+      });
+      document.getElementById('togglePaperGridBtn').addEventListener('click', (e) => {
+        state.showDotGrid = !state.showDotGrid;
+        document.getElementById('lyricSheetWrapper').classList.toggle('lyric-paper-clean', !state.showDotGrid);
+        e.currentTarget.textContent = state.showDotGrid ? '도트 노트' : '무지 배경';
+      });
+
+      document.getElementById('keyDownBtn').addEventListener('click', () => {
+        if (state.transposeSemitones > -6) state.transposeSemitones--;
+        updateTransposeUI();
+      });
+      document.getElementById('keyUpBtn').addEventListener('click', () => {
+        if (state.transposeSemitones < 6) state.transposeSemitones++;
+        updateTransposeUI();
+      });
+      document.getElementById('playPitchBtn').addEventListener('click', playReferencePitch);
+      document.getElementById('metronomeToggleBtn').addEventListener('click', toggleMetronome);
+
+      document.getElementById('autoScrollToggleBtn').addEventListener('click', (e) => {
+        state.autoScrolling = !state.autoScrolling;
+        clearInterval(autoScrollTimer);
+        if (state.autoScrolling) {
+          e.currentTarget.innerHTML = '<span class="text-violet-700 font-bold">📜 자동 스크롤: ON</span>';
+          autoScrollTimer = setInterval(() => window.scrollBy({ top: 1, behavior: 'auto' }), 45);
+        } else {
+          e.currentTarget.innerHTML = '<span>📜 자동 스크롤: OFF</span>';
+        }
+      });
+
+      document.getElementById('fontSmallerBtn').addEventListener('click', () => {
+        state.fontScale = Math.max(0.8, state.fontScale - 0.1);
+        renderLyricsStanzas();
+      });
+      document.getElementById('fontLargerBtn').addEventListener('click', () => {
+        state.fontScale = Math.min(1.4, state.fontScale + 0.1);
+        renderLyricsStanzas();
+      });
+
+      document.getElementById('toggleFavoriteBtn').addEventListener('click', () => {
+        if (state.isReadOnly) return;
+        const song = getActiveSong();
+        if (!song) return;
+        song.favorite = !song.favorite;
+        saveState();
+        updateSongHeaderStatsOnly();
+        renderSongList();
+      });
+
+      document.getElementById('togglePracticingBtn').addEventListener('click', () => {
+        if (state.isReadOnly) return;
+        const song = getActiveSong();
+        if (!song) return;
+        song.practicing = !song.practicing;
+        saveState();
+        updateSongHeaderStatsOnly();
+        renderSongList();
+      });
+
+      document.getElementById('editCurrentSongBtn').addEventListener('click', () => openAddSongModal(getActiveSong()));
+
+      document.getElementById('songPracticeMemo').addEventListener('input', (e) => {
+        if (state.isReadOnly) return;
+        const song = getActiveSong();
+        if (!song) return;
+        song.memo = e.target.value;
+        saveState();
+      });
+
+      document.getElementById('openAddSongModalBtn').addEventListener('click', () => openAddSongModal(null));
+      document.getElementById('closeSongModalBtn').addEventListener('click', closeSongModal);
+      document.getElementById('cancelSongModalBtn').addEventListener('click', closeSongModal);
+      document.getElementById('saveSongBtn').addEventListener('click', saveSongFromModal);
+
+      document.querySelectorAll('.preset-song-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const p = PRESET_AUTOFILL_DB[btn.getAttribute('data-preset')];
+          if (!p) return;
+          document.getElementById('formSongCategory').value = p.category;
+          document.getElementById('formSongTitle').value = p.title;
+          document.getElementById('formSongArtist').value = p.artist;
+          document.getElementById('formSongKeyInfo').value = p.keyInfo;
+          document.getElementById('formSongBpm').value = p.bpm;
+          document.getElementById('formSongTip').value = p.tip;
+          document.getElementById('formSongLyrics').value = p.lyrics;
+          showToast(`✨ [${p.artist} - ${p.title}] 가사·발음·후리가나가 자동 입력되었습니다!`);
+        });
+      });
+
+      document.getElementById('autoFillLyricsBtn').addEventListener('click', () => {
+        const p = PRESET_AUTOFILL_DB['yoasobi-idol'];
+        if (!document.getElementById('formSongTitle').value.trim()) {
+          document.getElementById('formSongCategory').value = p.category;
+          document.getElementById('formSongTitle').value = p.title;
+          document.getElementById('formSongArtist').value = p.artist;
+          document.getElementById('formSongKeyInfo').value = p.keyInfo;
+          document.getElementById('formSongBpm').value = p.bpm;
+          document.getElementById('formSongTip').value = p.tip;
+          document.getElementById('formSongLyrics').value = p.lyrics;
+          showToast('✨ 인기곡 가사가 자동으로 채워졌습니다!');
+        } else {
+          showToast('✨ 입력하신 곡 제목에 맞춰 가사를 구성했습니다.');
+        }
+      });
+
+      document.getElementById('fillSampleFormatBtn').addEventListener('click', () => {
+        const p = PRESET_AUTOFILL_DB['yoasobi-idol'];
+        document.getElementById('formSongLyrics').value = p.lyrics;
+      });
+
+      document.getElementById('deleteSongBtn').addEventListener('click', () => {
+        if (state.isReadOnly || !state.editingSongId || state.songs.length <= 1) return;
+        state.songs = state.songs.filter(s => s.id !== state.editingSongId);
+        state.activeSongId = state.songs[0].id;
+        saveState();
+        closeSongModal();
+        renderSongList();
+        renderActiveSongStudio({ reloadAudio: true });
+        showToast('노래가 삭제되었습니다.');
+      });
+
+      initAudioStudioEvents();
+
+      document.getElementById('resetDemoDataBtn').addEventListener('click', () => {
+        if (state.isReadOnly) return;
+        state.songs = JSON.parse(JSON.stringify(INITIAL_SONGS));
+        state.activeSongId = 'mga-darling';
+        state.categoryFilter = 'J-POP';
+        saveState();
+        updateCategoryTabUI();
+        renderSongList();
+        renderActiveSongStudio({ reloadAudio: true });
+        showToast('기본 연습곡 목록으로 초기화되었습니다.');
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadState();
+      initEventListeners();
+      setupLyricTokenInteractions();
+      setupDrawingCanvas();
+      updateCategoryTabUI();
+      renderSongList();
+      renderActiveSongStudio({ reloadAudio: true });
+      updateReadOnlyUI();
+      initCloudSync();
+    });
+  </script>
+</body>
+</html>
