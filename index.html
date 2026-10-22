@@ -27,7 +27,7 @@
       overflow-x: hidden;
     }
 
-    /* 3단 가사 타이포그래피 (첫 이미지 스타일 완벽 재현) */
+    /* 3단 가사 타이포그래피 */
     .lyric-orig {
       font-size: 1.35rem;
       font-weight: 900;
@@ -91,7 +91,6 @@
     .mark-tie    { color: #059669; background: #ecfdf5; border: 1px solid #a7f3d0; }
     .mark-vocal  { color: #6d28d9; background: #f5f3ff; border: 1px solid #ddd6fe; font-size: 0.72rem; }
 
-    /* 한자 위 루비 (후리가나) */
     ruby { ruby-align: center; }
     rt { font-size: 0.68rem; color: #7c3aed; font-weight: 700; }
 
@@ -113,7 +112,6 @@
       touch-action: none;
     }
 
-    /* 커스텀 스크롤바 */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #f1f5f9; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
@@ -125,7 +123,6 @@
   <!-- 상단 고정 네비게이션 바 -->
   <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
-      <!-- 로고 & 타이틀 -->
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center text-white font-black text-xl shadow-md">
           🎙️
@@ -159,7 +156,7 @@
           🔓 편집 가능 (나만 수정 설정)
         </button>
 
-        <button onclick="openSongModal()" id="addSongBtn" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-violet-600 text-white hover:bg-violet-700 shadow-sm transition">
+        <button onclick="openSongModal(false)" id="addSongBtn" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-violet-600 text-white hover:bg-violet-700 shadow-sm transition">
           + 노래 추가
         </button>
       </div>
@@ -171,12 +168,11 @@
     🔒 현재 <strong>열람 전용(수정 잠금)</strong> 모드입니다. 가사와 필기 내역 열람 및 음원 재생만 가능하며, 수정하려면 우측 상단 [🔒 잠금 해제]에서 비밀번호를 입력하세요.
   </div>
 
-  <!-- 메인 레이아웃 (좌측 사이드바 + 우측 워크스페이스) -->
+  <!-- 메인 레이아웃 -->
   <div class="max-w-7xl w-full mx-auto flex-1 flex flex-col lg:flex-row gap-5 p-4">
 
-    <!-- 좌측 사이드바: 카테고리 탭 & 노래 리스트 -->
+    <!-- 좌측 사이드바 -->
     <aside class="w-full lg:w-72 flex-shrink-0 flex flex-col gap-3">
-      <!-- 카테고리 탭 (전체, K-POP, J-POP, POP) -->
       <div class="bg-white p-1.5 rounded-2xl border border-slate-200 shadow-sm grid grid-cols-4 gap-1">
         <button onclick="selectCategory('ALL')" id="cat-ALL" class="cat-tab py-2 rounded-xl text-xs font-extrabold bg-violet-600 text-white transition">전체</button>
         <button onclick="selectCategory('J-POP')" id="cat-J-POP" class="cat-tab py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition">J-POP</button>
@@ -184,7 +180,6 @@
         <button onclick="selectCategory('POP')" id="cat-POP" class="cat-tab py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition">POP</button>
       </div>
 
-      <!-- 곡 목록 박스 -->
       <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-3 flex-1 flex flex-col max-h-[340px] lg:max-h-[calc(100vh-180px)]">
         <div class="flex items-center justify-between px-1 pb-2 mb-2 border-b border-slate-100">
           <span class="text-xs font-extrabold text-slate-500" id="songCountLabel">연습곡 목록 (0곡)</span>
@@ -201,23 +196,23 @@
       <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
         <div class="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <div class="flex items-center gap-2 mb-1">
+            <div class="flex items-center gap-2 mb-1 flex-wrap">
               <span id="activeCatBadge" class="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-violet-100 text-violet-700">J-POP</span>
-              <span id="activeKeyBadge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700">원키: Bb Major</span>
-              <span id="activeTjBadge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">TJ 68461</span>
-              <span id="activeBreathCount" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-50 text-rose-600 border border-rose-200">호흡 ∨ 0곳</span>
+              <span id="activeKeyBadge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700">원키 미지정</span>
+              <span id="activeTjBadge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">노래방 번호 없음</span>
+              <span id="activeBreathCount" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-50 text-rose-600 border border-rose-200">호흡/기호 ∨ 0곳</span>
+              <span id="activeStanzaCount" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-50 text-sky-700 border border-sky-200">총 0구절</span>
             </div>
             <h2 id="activeSongTitle" class="text-2xl font-black text-slate-900">곡 제목</h2>
             <p id="activeSongArtist" class="text-sm font-bold text-slate-500">아티스트</p>
           </div>
 
-          <!-- 곡 편집/삭제 및 오디오 토글 버튼 -->
           <div class="flex items-center gap-2 flex-wrap">
             <button onclick="toggleAudioDrawer()" class="px-3.5 py-2 rounded-xl text-xs font-extrabold bg-slate-900 text-white hover:bg-slate-800 transition flex items-center gap-1.5 shadow-sm">
               🎙️ 연습 녹음 / 음원 & 피치 조절
             </button>
-            <button onclick="openSongModal(true)" id="editSongBtn" class="px-3 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
-              ✏️ 가사/곡 수정
+            <button onclick="openSongModal(true)" id="editSongBtn" class="px-3 py-2 rounded-xl text-xs font-extrabold bg-violet-100 text-violet-700 hover:bg-violet-200 transition">
+              ✏️ 가사 전체 수정 / 붙여넣기
             </button>
             <button onclick="deleteActiveSong()" id="deleteSongBtn" class="px-3 py-2 rounded-xl text-xs font-bold bg-rose-50 text-rose-600 hover:bg-rose-100 transition">
               🗑️ 삭제
@@ -231,14 +226,13 @@
           <p id="activeVocalTip" class="text-xs font-semibold text-violet-950 leading-relaxed flex-1"></p>
         </div>
 
-        <!-- 오디오 & 피치 스튜디오 패널 (무중단 재생 보장) -->
+        <!-- 오디오 & 피치 스튜디오 패널 -->
         <div id="audioStudioDrawer" class="mt-4 bg-slate-900 text-white rounded-2xl p-4 shadow-inner">
           <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800">
             <div class="flex items-center gap-2">
               <span class="text-sm font-extrabold text-violet-300">🎧 내 연습 녹음 & 음원 스튜디오 (노래 들으며 가사 체크 가능)</span>
               <span class="text-[11px] bg-emerald-900/70 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-700 font-bold">가사 클릭 시 음악 끊김 없음</span>
             </div>
-            <!-- 음원 소스 탭 -->
             <div class="flex gap-1.5">
               <button onclick="switchAudioTab('drive')" id="audioTab-drive" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-violet-600 text-white">☁️ 구글 드라이브 링크</button>
               <button onclick="switchAudioTab('local')" id="audioTab-local" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-800 text-slate-300 hover:bg-slate-700">📂 기기 파일 (±6키 피치/배속)</button>
@@ -246,7 +240,7 @@
             </div>
           </div>
 
-          <!-- 1) 구글 드라이브 링크 연동 영역 -->
+          <!-- 1) 구글 드라이브 링크 연동 -->
           <div id="audioPane-drive" class="mt-3 space-y-2.5">
             <div class="flex flex-wrap gap-2">
               <input type="text" id="driveUrlInput" placeholder="구글 드라이브 공유 링크 붙여넣기 (예: https://drive.google.com/file/d/.../view?usp=sharing)" 
@@ -261,7 +255,6 @@
             <p class="text-[11px] text-slate-400">
               💡 구글 드라이브에 WAV/MP3 파일을 올린 뒤 <strong>[공유] → [링크가 있는 모든 사용자(뷰어)]</strong>로 설정하고 링크를 붙여넣으세요. 파이어베이스 DB 용량을 전혀 차지하지 않고 모든 기기에서 재생됩니다.
             </p>
-            <!-- 구글 드라이브 공식 내장 오디오 플레이어 (CORS 에러 방지) -->
             <div id="driveIframeContainer" class="hidden pt-1">
               <div class="flex items-center justify-between mb-1">
                 <span class="text-[11px] font-bold text-emerald-400">▶ Google Drive 공식 스트리밍 플레이어 연결됨</span>
@@ -271,7 +264,7 @@
             </div>
           </div>
 
-          <!-- 2) 기기 파일 업로드 (Tone.js 독립 피치 ±6키 지원) -->
+          <!-- 2) 기기 파일 업로드 -->
           <div id="audioPane-local" class="hidden mt-3 space-y-2.5">
             <div class="flex flex-wrap items-center gap-3">
               <label class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-xs font-extrabold cursor-pointer transition inline-flex items-center gap-1.5">
@@ -282,7 +275,7 @@
             </div>
           </div>
 
-          <!-- 3) 마이크 직접 녹음 영역 -->
+          <!-- 3) 마이크 직접 녹음 -->
           <div id="audioPane-record" class="hidden mt-3 space-y-2.5">
             <div class="flex flex-wrap items-center gap-3">
               <button onclick="toggleMicRecording()" id="micRecordBtn" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 rounded-xl text-xs font-extrabold transition flex items-center gap-1.5">
@@ -308,7 +301,7 @@
               </div>
             </div>
 
-            <!-- 배속 조절 (0.8x / 1.0x / 1.2x) -->
+            <!-- 배속 조절 -->
             <div class="flex items-center gap-1 bg-slate-900 px-2.5 py-1.5 rounded-xl border border-slate-700">
               <span class="text-[11px] text-slate-400 font-bold mr-1">배속</span>
               <button onclick="setDspSpeed(0.8)" id="spd-0.8" class="px-2 py-0.5 rounded text-xs font-bold text-slate-300 hover:bg-slate-800">0.8x</button>
@@ -330,7 +323,7 @@
         </div>
       </section>
 
-      <!-- 가사 보기 모드 탭 (J-POP 후리가나 & 한국어 발음 전용 탭 포함) -->
+      <!-- 가사 보기 모드 탭 -->
       <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-3 flex flex-wrap items-center justify-between gap-2">
         <div class="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1.5 rounded-xl">
           <button onclick="setLyricViewMode('3tier')" id="vmode-3tier" class="vmode-btn px-3 py-1.5 rounded-lg text-xs font-extrabold bg-white text-violet-700 shadow-sm transition">
@@ -347,7 +340,6 @@
           </button>
         </div>
 
-        <!-- 단일 탭 전용 해석 표시 토글 -->
         <div class="flex items-center gap-2">
           <button onclick="toggleSubTrans()" id="toggleTransBtn" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-violet-50 text-violet-700 border border-violet-200 hover:bg-violet-100 transition">
             해석 함께 보기: ON
@@ -358,7 +350,6 @@
       <!-- 보컬 연습 필기 & 호흡 체크 툴바 -->
       <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-3 flex flex-col gap-2.5 sticky top-[68px] z-30">
         <div class="flex flex-wrap items-center justify-between gap-2">
-          <!-- 메인 도구 선택 -->
           <div class="flex flex-wrap items-center gap-1.5">
             <span class="text-xs font-extrabold text-slate-400 mr-1">필기 도구:</span>
             <button onclick="selectTool('breath')" id="toolBtn-breath" class="tool-btn px-3 py-1.5 rounded-xl text-xs font-extrabold bg-violet-600 text-white shadow-sm transition">
@@ -378,16 +369,13 @@
             </button>
           </div>
 
-          <!-- 우측 실행취소 / 전체 지우기 -->
           <div class="flex items-center gap-1.5">
             <button onclick="undoCanvasStroke()" class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200" title="자유선 되돌리기">↩ 선 취소</button>
             <button onclick="clearAllSongAnnotations()" class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-rose-50 text-rose-600 hover:bg-rose-100">전체 초기화</button>
           </div>
         </div>
 
-        <!-- 세부 옵션 바: 호흡 기호 선택 or 형광펜 색상 선택 -->
         <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 text-xs">
-          <!-- 호흡 & 발성 기호 팔레트 -->
           <div id="subPalette-breath" class="flex flex-wrap items-center gap-1.5">
             <span class="text-[11px] font-bold text-slate-400">기호 선택 (글자 클릭 시 뒤에 찍힘):</span>
             <button onclick="setBreathSymbol('∨')" id="sym-∨" class="sym-btn px-2.5 py-1 rounded-lg font-extrabold bg-rose-100 text-rose-700 border border-rose-300">∨ 기본호흡</button>
@@ -399,7 +387,6 @@
             <button onclick="setBreathSymbol('★강세')" id="sym-★강세" class="sym-btn px-2.5 py-1 rounded-lg font-bold bg-slate-100 text-slate-700">★강세</button>
           </div>
 
-          <!-- 형광펜/연필 색상 팔레트 -->
           <div class="flex items-center gap-2 ml-auto">
             <span class="text-[11px] font-bold text-slate-400">색상:</span>
             <button onclick="setHighlightColor('yellow')" id="col-yellow" class="w-6 h-6 rounded-full bg-yellow-300 ring-2 ring-offset-1 ring-slate-900"></button>
@@ -413,10 +400,7 @@
 
       <!-- 가사 악보 종이 (3단 중앙 정렬 + 자유 캔버스 오버레이) -->
       <section class="bg-white rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden min-h-[540px]">
-        <!-- 자유 연필/형광펜 드로잉 캔버스 -->
         <canvas id="drawingCanvas" class="canvas-passthrough"></canvas>
-
-        <!-- 가사 본문 컨테이너 -->
         <div id="lyricsPaper" class="p-8 md:p-12 max-w-3xl mx-auto text-center space-y-9 relative z-10"></div>
       </section>
 
@@ -433,11 +417,11 @@
     </main>
   </div>
 
-  <!-- 모달 1: 노래 추가 / 수정 모달 (자동 채우기 포함) -->
+  <!-- 모달 1: 노래 추가 / 수정 모달 (스마트 가사 파서 탑재) -->
   <div id="songModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl border border-slate-200">
+    <div class="bg-white rounded-3xl max-w-3xl w-full max-h-[92vh] overflow-y-auto p-6 shadow-2xl border border-slate-200">
       <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-        <h3 id="songModalTitle" class="text-lg font-black text-slate-900">🎵 새 연습곡 추가</h3>
+        <h3 id="songModalTitle" class="text-lg font-black text-slate-900">🎵 새 연습곡 추가 / 가사 전문 붙여넣기</h3>
         <button onclick="closeSongModal()" class="text-slate-400 hover:text-slate-700 text-xl font-bold">✕</button>
       </div>
 
@@ -445,22 +429,22 @@
       <div class="mt-3 bg-violet-50 p-3 rounded-2xl border border-violet-100">
         <div class="text-xs font-extrabold text-violet-900 mb-2">⚡ 인기 연습곡 원클릭 가사 자동 채우기:</div>
         <div class="flex flex-wrap gap-1.5">
+          <button onclick="fillPresetSong('heroine')" class="px-2.5 py-1 bg-white hover:bg-violet-100 text-violet-700 border border-violet-200 rounded-lg text-xs font-bold">백넘버 - 히로인 (전문)</button>
+          <button onclick="fillPresetSong('pretender')" class="px-2.5 py-1 bg-white hover:bg-violet-100 text-violet-700 border border-violet-200 rounded-lg text-xs font-bold">히게단 - Pretender (전문)</button>
           <button onclick="fillPresetSong('betelgeuse')" class="px-2.5 py-1 bg-white hover:bg-violet-100 text-violet-700 border border-violet-200 rounded-lg text-xs font-bold">Yuuri - 베텔기우스</button>
-          <button onclick="fillPresetSong('pretender')" class="px-2.5 py-1 bg-white hover:bg-violet-100 text-violet-700 border border-violet-200 rounded-lg text-xs font-bold">히게단 - Pretender</button>
           <button onclick="fillPresetSong('hakujitsu')" class="px-2.5 py-1 bg-white hover:bg-violet-100 text-violet-700 border border-violet-200 rounded-lg text-xs font-bold">King Gnu - 백일(白日)</button>
-          <button onclick="fillPresetSong('yorunikakeru')" class="px-2.5 py-1 bg-white hover:bg-violet-100 text-violet-700 border border-violet-200 rounded-lg text-xs font-bold">YOASOBI - 밤을 달리다</button>
-          <button onclick="fillPresetSong('youwerebeautiful')" class="px-2.5 py-1 bg-white hover:bg-violet-100 text-violet-700 border border-violet-200 rounded-lg text-xs font-bold">DAY6 - 예뻤어</button>
+          <button onclick="fillPresetSong('lilac')" class="px-2.5 py-1 bg-white hover:bg-violet-100 text-violet-700 border border-violet-200 rounded-lg text-xs font-bold">미세스 - 라일락</button>
         </div>
       </div>
 
       <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
         <div>
           <label class="block text-xs font-bold text-slate-600 mb-1">곡 제목 *</label>
-          <input type="text" id="modalTitleInput" placeholder="예: 괴수의 꽃노래 (怪獣の花唄)" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl">
+          <input type="text" id="modalTitleInput" placeholder="예: 히로인 (ヒロイン)" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl">
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-600 mb-1">가수 (아티스트) *</label>
-          <input type="text" id="modalArtistInput" placeholder="예: Vaundy" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl">
+          <input type="text" id="modalArtistInput" placeholder="예: back number (백넘버)" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl">
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-600 mb-1">카테고리 *</label>
@@ -472,7 +456,7 @@
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-600 mb-1">원키 / 최고음 / 노래방 번호</label>
-          <input type="text" id="modalKeyInput" placeholder="예: D Major / TJ 68392" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl">
+          <input type="text" id="modalKeyInput" placeholder="예: Gb Major / TJ 27684" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl">
         </div>
       </div>
 
@@ -481,20 +465,32 @@
         <input type="text" id="modalTipInput" placeholder="예: 후렴 고음 진입 전 아포지오 복압 유지" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl">
       </div>
 
+      <!-- 스마트 가사 붙여넣기 모드 선택 -->
       <div class="mt-4">
-        <div class="flex items-center justify-between mb-1">
-          <label class="text-xs font-extrabold text-slate-700">가사 입력 (연 단위로 빈 줄로 구분, 한 연 안에 줄바꿈으로 원문/발음/해석/후리가나 입력)</label>
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-1.5">
+          <label class="text-xs font-extrabold text-slate-800">📋 가사 전문 붙여넣기 (빈 줄 없이 쭉 붙여넣어도 자동으로 전체 구절이 나눠집니다!)</label>
+          <div class="flex items-center gap-1.5 text-xs">
+            <span class="text-slate-500 font-bold">줄 묶음 방식:</span>
+            <select id="modalParseMode" onchange="updateLiveParsePreview()" class="px-2.5 py-1 border border-violet-300 rounded-lg bg-violet-50 text-violet-800 font-extrabold text-xs">
+              <option value="auto">🤖 스마트 자동 인식 (추천 - 원문/발음/해석 자동 분류)</option>
+              <option value="3lines">3줄씩 무조건 묶기 (1줄:원문 / 2줄:발음 / 3줄:해석)</option>
+              <option value="2lines">2줄씩 묶기 (1줄:원문 / 2줄:발음 또는 해석)</option>
+              <option value="1line">1줄씩 각각 표시 (일반 한국어 가사 등)</option>
+              <option value="4lines">4줄씩 묶기 (원문 / 발음 / 해석 / 히라가나)</option>
+            </select>
+          </div>
         </div>
-        <p class="text-[11px] text-slate-500 mb-2">
-          형식: 1줄=원문, 2줄=한국어발음, 3줄=해석, 4줄(선택)=히라가나 후리가나. (연과 연 사이는 엔터 두 번으로 띄워주세요)
-        </p>
-        <textarea id="modalLyricsInput" rows="9" placeholder="過ぎてゆくんだ今日も&#10;스기테유쿤다 쿄오모&#10;오늘도 그렇게 지나간다&#10;すぎて ゆくんだ きょうも&#10;&#10;この寿命の通りに&#10;코노 주묘오노 토오리니&#10;이 수명처럼&#10;この じゅみょうの とおりに" 
-          class="w-full px-3 py-2.5 text-xs font-mono border border-slate-200 rounded-xl leading-relaxed"></textarea>
+        <div class="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-1.5 mb-2 text-xs text-emerald-800 font-bold">
+          <span>✅ 블로그 등에서 복사한 가사 전문을 그대로 붙여넣으세요! (엔터 두 번 안 쳐도 됨)</span>
+          <span id="liveParseCounter" class="bg-emerald-600 text-white px-2.5 py-0.5 rounded-full text-[11px] font-extrabold">인식된 구절: 0개</span>
+        </div>
+        <textarea id="modalLyricsInput" oninput="updateLiveParsePreview()" rows="11" placeholder="여기에 가사 전문을 그대로 붙여넣으세요!&#10;&#10;예시 (빈 줄 없이 계속 이어져도 전부 다 나옵니다):&#10;君の毎日に僕は似合わないかな&#10;키미노 마이니치니 보쿠와 니아와나이카나&#10;너의 매일에 나는 어울리지 않을까&#10;白い空から雪が落ちた&#10;시로이 소라카라 유키가 오치타&#10;하얀 하늘에서 눈이 떨어졌어" 
+          class="w-full px-3.5 py-3 text-xs font-mono border border-slate-300 rounded-xl leading-relaxed focus:outline-none focus:border-violet-500"></textarea>
       </div>
 
       <div class="mt-5 flex justify-end gap-2">
         <button onclick="closeSongModal()" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600">취소</button>
-        <button onclick="saveSongFromModal()" class="px-5 py-2 rounded-xl text-xs font-extrabold bg-violet-600 text-white hover:bg-violet-700 shadow">💾 클라우드에 곡 저장</button>
+        <button onclick="saveSongFromModal()" class="px-5 py-2.5 rounded-xl text-xs font-extrabold bg-violet-600 text-white hover:bg-violet-700 shadow">💾 클라우드에 가사 전체 저장</button>
       </div>
     </div>
   </div>
@@ -557,7 +553,7 @@
 
   <script>
     /**************************************************************
-     * 1. FIREBASE REALTIME DATABASE 초기화 (사용자 전용 키 탑재)
+     * 1. FIREBASE REALTIME DATABASE 초기화
      **************************************************************/
     const firebaseConfig = {
       apiKey: "AIzaSyDobx5ujKRIF-CrKKUf39APczKvOi1veQ8",
@@ -574,9 +570,33 @@
     const rtdb = firebase.database();
 
     /**************************************************************
-     * 2. 기본 수록곡 데이터 (Vaundy + 미세스 그린 애플 5곡 + K-POP/POP)
+     * 2. 기본 수록곡 데이터 (백넘버 히로인 + 미세스 5곡 + 히게단 등)
      **************************************************************/
     const INITIAL_SONGS = [
+      {
+        id: "backnumber_heroine",
+        title: "ヒロイン (히로인)",
+        artist: "back number (백넘버)",
+        category: "J-POP",
+        keyInfo: "원키: Gb Major · 81 BPM",
+        tjKy: "TJ 27684 / KY 43902",
+        vocalTip: "도입부 '키미노 마이니치니'는 따뜻한 호흡 섞인 중저음으로 담담하게 부르고, 후렴 '유키가 키레이토 와라우노와 키미가 이이'에서 연구개를 넓게 열어 애절한 두성 공명을 연결하세요.",
+        driveUrl: "",
+        memo: "",
+        stanzas: [
+          { orig: "君の毎日に僕は似合わないかな", pron: "키미노 마이니치니 보쿠와 니아와나이카나", trans: "너의 매일에 나는 어울리지 않을까", furi: "きみの まいにちに ぼくは にあわないかな" },
+          { orig: "白い空から雪が落ちた", pron: "시로이 소라카라 유키가 오치타", trans: "하얀 하늘에서 눈이 떨어졌어", furi: "しろい そらから ゆきが おちた" },
+          { orig: "別にいいさと吐き出したため息が", pron: "베츠니 이이사토 하키다시타 타메이키가", trans: "별로 상관없다며 내뱉은 한숨이", furi: "べつに いいさと はきだした ためいきが" },
+          { orig: "少し残って寂しそうに消えた", pron: "스코시 노콧테 사비시소오니 키에타", trans: "조금 남아 쓸쓸하게 사라졌어", furi: "すこし のこって さびしそうに きえた" },
+          { orig: "君の街にも降っているかな", pron: "키미노 마치니모 훗테 이루카나", trans: "네가 있는 거리에도 내리고 있을까", furi: "きみの まちにも ふって いるかな" },
+          { orig: "ああ今隣で", pron: "아아 이마 토나리데", trans: "아아 지금 곁에서", furi: "ああ いま となりで" },
+          { orig: "雪が綺麗と笑うのは君がいい", pron: "유키가 키레이토 와라우노와 키미가 이이", trans: "눈이 예쁘다고 웃는 건 너였으면 좋겠어", furi: "ゆきが きれい토 わらうのは きみが いい" },
+          { orig: "でも寒いねって嬉しそうなのも", pron: "데모 사무이넷테 우레시소오나노모", trans: "하지만 춥네라며 기뻐 보이는 것도", furi: "でも さむいねって うれしそうなのも" },
+          { orig: "転びそうになって掴んだ手のその先で", pron: "코로비소오니 낫테 츠칸다 테노 소노 사키데", trans: "넘어질 뻔해서 붙잡은 손의 그 끝에서", furi: "ころびそうに なって つかんだ ての その さきで" },
+          { orig: "ありがとうって楽しそうなのも", pron: "아리가토옷테 타노시소오나노모", trans: "고맙다며 즐거워 보이는 것도", furi: "ありがとうって たのしそうなのも" },
+          { orig: "それも君がいい", pron: "소레모 키미가 이이", trans: "그것도 너였으면 좋겠어", furi: "それも きみが いい" }
+        ]
+      },
       {
         id: "mga_lilac",
         title: "ライラック (라일락 / Lilac)",
@@ -584,52 +604,16 @@
         category: "J-POP",
         keyInfo: "원키: Bb Major · 150 BPM",
         tjKy: "TJ 68461 / KY 75996",
-        vocalTip: "첫 이미지의 연습곡입니다! 빠른 템포 속에서도 '스기테유쿤다 쿄오모'의 자음 어택을 명확히 발음하고, 후렴 고음 진입 직전 짧은 복식호흡(∨)을 놓치지 마세요.",
+        vocalTip: "빠른 템포 속에서도 '스기테유쿤다 쿄오모'의 자음 어택을 명확히 발음하고, 후렴 고음 진입 직전 짧은 복식호흡(∨)을 놓치지 마세요.",
         driveUrl: "",
         memo: "",
         stanzas: [
-          {
-            orig: "過ぎてゆくんだ今日も",
-            pron: "스기테유쿤다 쿄오모",
-            trans: "오늘도 그렇게 지나간다",
-            furi: "すぎて ゆくんだ きょうも",
-            ruby: "<ruby>過<rt>す</rt></ruby>ぎてゆくんだ<ruby>今日<rt>きょう</rt></ruby>も"
-          },
-          {
-            orig: "この寿命の通りに",
-            pron: "코노 주묘오노 토오리니",
-            trans: "이 수명처럼",
-            furi: "この じゅみょうの とおりに",
-            ruby: "この<ruby>寿命<rt>じゅみょう</rt></ruby>の<ruby>通<rt>とお</rt></ruby>りに"
-          },
-          {
-            orig: "限りある数字が減るように",
-            pron: "카기리 아루 스우지가 헤루요오니",
-            trans: "정해진 숫자가 줄어들듯이",
-            furi: "かぎり ある すうじが へるように",
-            ruby: "<ruby>限<rt>かぎ</rt></ruby>りある<ruby>数字<rt>すうじ</rt></ruby>が<ruby>減<rt>へ</rt></ruby>るように"
-          },
-          {
-            orig: "美しい数字が増えるように",
-            pron: "우츠쿠시이 스우지가 후에루요오니",
-            trans: "아름다운 숫자가 늘어나듯이",
-            furi: "うつくしい すうじが ふえるように",
-            ruby: "<ruby>美<rt>うつく</rt></ruby>しい<ruby>数字<rt>すうじ</rt></ruby>が<ruby>増<rt>ふ</rt></ruby>えるように"
-          },
-          {
-            orig: "思い出の宝庫",
-            pron: "오모이데노 호오코",
-            trans: "추억의 보물상자",
-            furi: "おもいでの ほうこ",
-            ruby: "<ruby>思<rt>おも</rt></ruby>い<ruby>出<rt>で</rt></ruby>の<ruby>宝庫<rt>ほうこ</rt></ruby>"
-          },
-          {
-            orig: "青に似たすっぱい春とライラック",
-            pron: "아오니 니타 슷파이 하루토 라이랏쿠",
-            trans: "푸름을 닮은 새콤한 봄과 라일락",
-            furi: "あおに にた すっぱい はると らいらっく",
-            ruby: "<ruby>青<rt>あお</rt></ruby>に<ruby>似<rt>に</rt></ruby>たすっぱい<ruby>春<rt>はる</rt></ruby>とライラック"
-          }
+          { orig: "過ぎてゆくんだ今日も", pron: "스기테유쿤다 쿄오모", trans: "오늘도 그렇게 지나간다", furi: "すぎて ゆくんだ きょうも" },
+          { orig: "この寿命の通りに", pron: "코노 주묘오노 토오리니", trans: "이 수명처럼", furi: "この じゅみょうの とおりに" },
+          { orig: "限りある数字が減るように", pron: "카기리 아루 스우지가 헤루요오니", trans: "정해진 숫자가 줄어들듯이", furi: "かぎり ある すうじが へるように" },
+          { orig: "美しい数字が増えるように", pron: "우츠쿠시이 스우지가 후에루요오니", trans: "아름다운 숫자가 늘어나듯이", furi: "うつくしい すうじが ふえるように" },
+          { orig: "思い出の宝庫", pron: "오모이데노 호오코", trans: "추억의 보물상자", furi: "おもいでの ほうこ" },
+          { orig: "青に似たすっぱい春とライラック", pron: "아오니 니타 슷파이 하루토 라이랏쿠", trans: "푸름을 닮은 새콤한 봄과 라일락", furi: "あおに にた すっぱい はると らいらっく" }
         ]
       },
       {
@@ -643,27 +627,9 @@
         driveUrl: "",
         memo: "",
         stanzas: [
-          {
-            orig: "darling 僕の背中に乗って泳いでて",
-            pron: "다알링 보쿠노 세나카니 놋테 오요이데테",
-            trans: "달링 내 등에 올라타서 헤엄쳐 줘",
-            furi: "だーりん ぼくの せなかに のって およいでて",
-            ruby: "darling <ruby>僕<rt>ぼく</rt></ruby>の<ruby>背中<rt>せなか</rt></ruby>に<ruby>乗<rt>の</rt></ruby>って<ruby>泳<rt>およ</rt></ruby>いでて"
-          },
-          {
-            orig: "やるせない日々をどうぞ笑って",
-            pron: "야루세나이 히비오 도오조 와랏테",
-            trans: "달랠 길 없는 날들을 부디 웃어 넘겨줘",
-            furi: "やるせない ひびを どうぞ わらって",
-            ruby: "やるせない<ruby>日々<rt>ひび</rt></ruby>をどうぞ<ruby>笑<rt>わら</rt></ruby>って"
-          },
-          {
-            orig: "君の呼吸が僕の背中を温めて",
-            pron: "키미노 코큐우가 보쿠노 세나카오 아타타메테",
-            trans: "너의 호흡이 내 등을 따뜻하게 데워줘서",
-            furi: "きみの こきゅうが ぼくの せなかを あたためて",
-            ruby: "<ruby>君<rt>きみ</rt></ruby>の<ruby>呼吸<rt>こきゅう</rt></ruby>が<ruby>僕<rt>ぼく</rt></ruby>の<ruby>背中<rt>せなか</rt></ruby>を<ruby>温<rt>あたた</rt></ruby>めて"
-          }
+          { orig: "darling 僕の背中に乗って泳いでて", pron: "다알링 보쿠노 세나카니 놋테 오요이데테", trans: "달링 내 등에 올라타서 헤엄쳐 줘", furi: "だーりん ぼくの せなかに のって およいでて" },
+          { orig: "やるせない日々をどうぞ笑って", pron: "야루세나이 히비오 도오조 와랏테", trans: "달랠 길 없는 날들을 부디 웃어 넘겨줘", furi: "やるせない ひびを どうぞ わらって" },
+          { orig: "君の呼吸が僕の背中を温めて", pron: "키미노 코큐우가 보쿠노 세나카오 아타타메테", trans: "너의 호흡이 내 등을 따뜻하게 데워줘서", furi: "きみの こきゅうが ぼくの せなかを あたためて" }
         ]
       },
       {
@@ -677,27 +643,9 @@
         driveUrl: "",
         memo: "",
         stanzas: [
-          {
-            orig: "照らすは闇 僕らの歩む道",
-            pron: "테라스와 야미 보쿠라노 아유무 미치",
-            trans: "비추는 것은 어둠, 우리가 걸어가는 길",
-            furi: "てらすは やみ ぼくらの あゆむ みち",
-            ruby: "<ruby>照<rt>て</rt></ruby>らすは<ruby>闇<rt>やみ</rt></ruby> <ruby>僕<rt>ぼく</rt></ruby>らの<ruby>歩<rt>あゆ</rt></ruby>む<ruby>道<rt>みち</rt></ruby>"
-          },
-          {
-            orig: "永遠はないんだと 振り返るといつも",
-            pron: "에이엔와 나인다토 후리카에루토 이츠모",
-            trans: "영원은 없다며 뒤돌아보면 언제나",
-            furi: "えいえんは ないんだと ふりかえると いつも",
-            ruby: "<ruby>永遠<rt>えいえん</rt></ruby>はないんだと <ruby>振<rt>ふ</rt></ruby>り<ruby>返<rt>かえ</rt></ruby>るといつも"
-          },
-          {
-            orig: "炎が立つ 導かれる方へ",
-            pron: "호노오가 타츠 미치비카레루 호오에",
-            trans: "불꽃이 피어오른다 이끌리는 곳으로",
-            furi: "ほのおが たつ みちびかれる ほうへ",
-            ruby: "<ruby>炎<rt>ほのお</rt></ruby>が<ruby>立<rt>た</rt></ruby>つ <ruby>導<rt>みちび</rt></ruby>かれる<ruby>方<rt>ほう</rt></ruby>へ"
-          }
+          { orig: "照らすは闇 僕らの歩む道", pron: "테라스와 야미 보쿠라노 아유무 미치", trans: "비추는 것은 어둠, 우리가 걸어가는 길", furi: "てらすは やみ ぼくらの あゆむ みち" },
+          { orig: "永遠はないんだと 振り返るといつも", pron: "에이엔와 나인다토 후리카에루토 이츠모", trans: "영원은 없다며 뒤돌아보면 언제나", furi: "えいえんは ないんだと ふりかえると いつも" },
+          { orig: "炎が立つ 導かれる方へ", pron: "호노오가 타츠 미치비카레루 호오에", trans: "불꽃이 피어오른다 이끌리는 곳으로", furi: "ほのおが たつ みちびかれる ほうへ" }
         ]
       },
       {
@@ -707,24 +655,12 @@
         category: "J-POP",
         keyInfo: "원키: E Major · 118 BPM",
         tjKy: "TJ 52440",
-        vocalTip: "장송의 프리렌 2기 OP 곡입니다. 가성(↗가성)과 믹스보이스의 연결이 매우 섬세하므로 성대 접촉을 가볍게 유지하세요.",
+        vocalTip: "가성(↗가성)과 믹스보이스의 연결이 매우 섬세하므로 성대 접촉을 가볍게 유지하세요.",
         driveUrl: "",
         memo: "",
         stanzas: [
-          {
-            orig: "終わりが来たら 愛を歌おう",
-            pron: "오와리가 키타라 아이오 우타오오",
-            trans: "끝이 찾아오면 사랑을 노래하자",
-            furi: "おわりが きたら あいを うたおう",
-            ruby: "<ruby>終<rt>お</rt></ruby>わりが<ruby>来<rt>き</rt></ruby>たら <ruby>愛<rt>あい</rt></ruby>を<ruby>歌<rt>うた</rt></ruby>おう"
-          },
-          {
-            orig: "瞳の裏に いつも君は居る",
-            pron: "히토미노 우라니 이츠모 키미와 이루",
-            trans: "눈꺼풀 뒤편에 언제나 네가 있어",
-            furi: "ひとみの うらに いつも きみは いる",
-            ruby: "<ruby>瞳<rt>ひとみ</rt></ruby>の<ruby>裏<rt>うら</rt></ruby>に いつも<ruby>君<rt>きみ</rt></ruby>は<ruby>居<rt>い</rt></ruby>る"
-          }
+          { orig: "終わりが来たら 愛を歌おう", pron: "오와리가 키타라 아이오 우타오오", trans: "끝이 찾아오면 사랑을 노래하자", furi: "おわりが きたら あいを うたおう" },
+          { orig: "瞳の裏に いつも君は居る", pron: "히토미노 우라니 이츠모 키미와 이루", trans: "눈꺼풀 뒤편에 언제나 네가 있어", furi: "ひとみの うらに いつも きみは いる" }
         ]
       },
       {
@@ -738,54 +674,9 @@
         driveUrl: "",
         memo: "",
         stanzas: [
-          {
-            orig: "僕と君とでは何が違う？",
-            pron: "보쿠토 키미토데와 나니가 치가우?",
-            trans: "나와 너는 무엇이 다른 걸까?",
-            furi: "ぼくと きみとでは なにが ちがう？",
-            ruby: "<ruby>僕<rt>ぼく</rt></ruby>と<ruby>君<rt>きみ</rt></ruby>とでは<ruby>何<rt>なに</rt></ruby>が<ruby>違<rt>ちが</rt></ruby>う？"
-          },
-          {
-            orig: "おんなじ生き物さ 分かってる",
-            pron: "온나지 이키모노사 와캇테루",
-            trans: "똑같은 생명체야 알고 있어",
-            furi: "おんなじ いきものさ わかってる",
-            ruby: "おんなじ<ruby>生<rt>い</rt></ruby>き<ruby>物<rt>もの</rt></ruby>さ <ruby>分<rt>わ</rt></ruby>かってる"
-          },
-          {
-            orig: "ああ なんて素敵な日だ",
-            pron: "아아 난테 스테키나 히다",
-            trans: "아아 이 얼마나 멋진 날인가",
-            furi: "ああ なんて すてきな ひだ",
-            ruby: "ああ なんて<ruby>素敵<rt>すてき</rt></ruby>な<ruby>日<rt>ひ</rt></ruby>だ"
-          }
-        ]
-      },
-      {
-        id: "vaundy_kaiju",
-        title: "怪獣の花唄 (괴수의 꽃노래)",
-        artist: "Vaundy",
-        category: "J-POP",
-        keyInfo: "원키: D Major · 150 BPM",
-        tjKy: "TJ 68392 / KY 44675",
-        vocalTip: "후렴 '오치루 마에니'에서 믹스보이스 포지션을 높게 잡고 호흡 압력(아포지오)으로 밀어 올리세요.",
-        driveUrl: "",
-        memo: "",
-        stanzas: [
-          {
-            orig: "思い出すのは君の歌",
-            pron: "오모이다스노와 키미노 우타",
-            trans: "떠오르는 건 너의 노래",
-            furi: "おもいだすのは きみの うた",
-            ruby: "<ruby>思<rt>おも</rt></ruby>い<ruby>出<rt>だ</rt></ruby>すのは<ruby>君<rt>きみ</rt></ruby>の<ruby>歌<rt>うた</rt></ruby>"
-          },
-          {
-            orig: "もっと騒げ怪獣の歌",
-            pron: "못토 사와게 카이주우노 우타",
-            trans: "더 떠들어라 괴수의 노래",
-            furi: "もっと さわげ かいじゅうの うた",
-            ruby: "もっと<ruby>騒<rt>さわ</rt></ruby>げ<ruby>怪獣<rt>かいじゅう</rt></ruby>の<ruby>歌<rt>うた</rt></ruby>"
-          }
+          { orig: "僕と君とでは何が違う？", pron: "보쿠토 키미토데와 나니가 치가우?", trans: "나와 너는 무엇이 다른 걸까?", furi: "ぼくと きみとでは なにが ちがう？" },
+          { orig: "おんなじ生き物さ 分かってる", pron: "온나지 이키모노사 와캇테루", trans: "똑같은 생명체야 알고 있어", furi: "おんなじ いきものさ わかってる" },
+          { orig: "ああ なんて素敵な日だ", pron: "아아 난테 스테키나 히다", trans: "아아 이 얼마나 멋진 날인가", furi: "ああ なんて すてきな ひだ" }
         ]
       }
     ];
@@ -794,23 +685,20 @@
      * 3. 앱 전역 상태 변수
      **************************************************************/
     let songsMap = {};
-    let activeSongId = "mga_lilac";
+    let activeSongId = "backnumber_heroine";
     let activeCategory = "ALL";
-    let lyricViewMode = "3tier"; // '3tier' | 'furi' | 'pron' | 'ruby'
+    let lyricViewMode = "3tier";
     let showSubTrans = true;
 
-    // 도구 상태
-    let currentTool = "breath"; // 'breath' | 'hlText' | 'hlDraw' | 'pencil' | 'eraser'
+    let currentTool = "breath";
     let currentBreathSym = "∨";
     let currentColor = "yellow";
 
-    // 잠금(나만 수정) 상태
     let isReadonly = false;
     let ownerPin = localStorage.getItem("vocal_owner_pin") || "1234";
 
-    // 오디오 & Tone.js DSP 피치 상태 (노래 재생 중 가사 체크해도 절대 끊기지 않음)
     let loadedAudioSongId = null;
-    let currentPitchSemitones = 0; // -6 ~ +6
+    let currentPitchSemitones = 0;
     let currentSpeedRate = 1.0;
     let tonePlayer = null;
     let tonePitchShift = null;
@@ -820,7 +708,6 @@
     let dspDuration = 0;
     let dspTimerInterval = null;
 
-    // 마이크 녹음 상태
     let mediaRecorder = null;
     let recordedChunks = [];
     let isRecording = false;
@@ -828,7 +715,152 @@
     let recSeconds = 0;
 
     /**************************************************************
-     * 4. 파이어베이스 실시간 로드 & 곡별 개별 저장 (용량 초과 100% 방지)
+     * 4. 스마트 가사 파서 (핵심 버그 수정! 빈 줄 없이 복붙해도 100% 전체 인식)
+     **************************************************************/
+    function hasJapaneseChars(str) {
+      return /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff]/.test(str);
+    }
+    function isPureHiraganaOrKatakana(str) {
+      // 한자가 거의 없고 히라가나/가타카나로만 이루어진 줄인지 판별
+      return /[\u3040-\u30ff]/.test(str) && !/[\u4e00-\u9fff]/.test(str);
+    }
+
+    function smartParseLyricsText(rawText, mode = "auto") {
+      if (!rawText || !rawText.trim()) {
+        return [{ orig: "가사를 입력해 주세요", pron: "", trans: "", furi: "" }];
+      }
+
+      // 모든 유효한 줄 추출 (빈 줄 무시하고 줄 단위로 정밀 분석)
+      const nonEmptyLines = rawText
+        .split(/\r?\n/)
+        .map(l => l.trim())
+        .filter(l => l.length > 0);
+
+      if (nonEmptyLines.length === 0) {
+        return [{ orig: "가사를 입력해 주세요", pron: "", trans: "", furi: "" }];
+      }
+
+      const stanzas = [];
+
+      if (mode === "1line") {
+        nonEmptyLines.forEach(line => {
+          stanzas.push({ orig: line, pron: "", trans: "", furi: line });
+        });
+        return stanzas;
+      }
+
+      if (mode === "2lines") {
+        for (let i = 0; i < nonEmptyLines.length; i += 2) {
+          stanzas.push({
+            orig: nonEmptyLines[i] || "",
+            pron: nonEmptyLines[i + 1] || "",
+            trans: "",
+            furi: nonEmptyLines[i] || ""
+          });
+        }
+        return stanzas;
+      }
+
+      if (mode === "3lines") {
+        for (let i = 0; i < nonEmptyLines.length; i += 3) {
+          stanzas.push({
+            orig: nonEmptyLines[i] || "",
+            pron: nonEmptyLines[i + 1] || "",
+            trans: nonEmptyLines[i + 2] || "",
+            furi: nonEmptyLines[i] || ""
+          });
+        }
+        return stanzas;
+      }
+
+      if (mode === "4lines") {
+        for (let i = 0; i < nonEmptyLines.length; i += 4) {
+          stanzas.push({
+            orig: nonEmptyLines[i] || "",
+            pron: nonEmptyLines[i + 1] || "",
+            trans: nonEmptyLines[i + 2] || "",
+            furi: nonEmptyLines[i + 3] || nonEmptyLines[i] || ""
+          });
+        }
+        return stanzas;
+      }
+
+      // 🤖 'auto' 스마트 자동 인식 모드:
+      // 일본어/영어가 섞인 가사든, 3줄씩 이어진 가사든, 빈 줄로 나뉜 가사든 절대 누락 없이 끝까지 묶어냅니다!
+      const jpCount = nonEmptyLines.filter(l => hasJapaneseChars(l)).length;
+
+      if (jpCount >= 2) {
+        // 일본어 원문이 포함된 경우: 일본어 원문이 나올 때마다 새 구절(Stanza) 시작으로 스마트 분리
+        let i = 0;
+        while (i < nonEmptyLines.length) {
+          const origLine = nonEmptyLines[i];
+          const next1 = nonEmptyLines[i + 1];
+          const next2 = nonEmptyLines[i + 2];
+          const next3 = nonEmptyLines[i + 3];
+
+          // 만약 4번째 줄이 순수 히라가나(후리가나)이고 2,3번째가 한글(발음/해석)인 경우
+          if (next1 && !hasJapaneseChars(next1) && next2 && !hasJapaneseChars(next2) && next3 && isPureHiraganaOrKatakana(next3)) {
+            stanzas.push({ orig: origLine, pron: next1, trans: next2, furi: next3 });
+            i += 4;
+          }
+          // 전형적인 [1줄: 일본어 원문 / 2줄: 한글 발음 / 3줄: 한글 해석] 패턴
+          else if (next1 && !hasJapaneseChars(next1) && next2 && !hasJapaneseChars(next2)) {
+            stanzas.push({ orig: origLine, pron: next1, trans: next2, furi: origLine });
+            i += 3;
+          }
+          // [1줄: 일본어 원문 / 2줄: 한글 발음 또는 해석] 2줄 패턴
+          else if (next1 && !hasJapaneseChars(next1)) {
+            stanzas.push({ orig: origLine, pron: next1, trans: "", furi: origLine });
+            i += 2;
+          }
+          // 일본어 원문만 연속되는 경우
+          else {
+            stanzas.push({ orig: origLine, pron: "", trans: "", furi: origLine });
+            i += 1;
+          }
+        }
+      } else {
+        // 일본어가 없는 경우 (POP이나 3줄씩 복사한 가사):
+        // 만약 사용자가 빈 줄(엔터 두 번)로 구분해 놓았다면 블록별로 처리하되, 한 블록이 4줄 이상이면 3줄씩 쪼개서 절대 안 날아가게 처리!
+        const blocks = rawText.trim().split(/\n\s*\n/);
+        blocks.forEach(block => {
+          const bLines = block.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+          if (bLines.length <= 4) {
+            stanzas.push({
+              orig: bLines[0] || "",
+              pron: bLines[1] || "",
+              trans: bLines[2] || "",
+              furi: bLines[3] || bLines[0] || ""
+            });
+          } else {
+            // 한 덩어리에 여러 줄이 뭉쳐 있으면 3줄씩 끝까지 분할
+            for (let k = 0; k < bLines.length; k += 3) {
+              stanzas.push({
+                orig: bLines[k] || "",
+                pron: bLines[k + 1] || "",
+                trans: bLines[k + 2] || "",
+                furi: bLines[k] || ""
+              });
+            }
+          }
+        });
+      }
+
+      return stanzas;
+    }
+
+    function updateLiveParsePreview() {
+      const raw = document.getElementById("modalLyricsInput").value;
+      const mode = document.getElementById("modalParseMode").value;
+      const parsed = smartParseLyricsText(raw, mode);
+      const countEl = document.getElementById("liveParseCounter");
+      if (countEl) {
+        countEl.innerText = `인식된 구절: 총 ${raw.trim() ? parsed.length : 0}구절 (누락 없음)`;
+      }
+    }
+
+    /**************************************************************
+     * 5. 파이어베이스 실시간 동기화
      **************************************************************/
     function initFirebaseSync() {
       const songsRef = rtdb.ref("vocal_studio_v3/songs");
@@ -837,8 +869,14 @@
         const val = snapshot.val();
         if (val && Object.keys(val).length > 0) {
           songsMap = val;
+          // 만약 기존에 '히로인' 곡이 1구절만 잘못 저장되어 있다면 자동으로 전문 가사로 보강
+          Object.values(songsMap).forEach(s => {
+            if (s.title && s.title.includes("히로인") && (!s.stanzas || s.stanzas.length <= 1)) {
+              s.stanzas = INITIAL_SONGS[0].stanzas;
+              rtdb.ref("vocal_studio_v3/songs/" + s.id).set(s);
+            }
+          });
         } else {
-          // 초기 데이터가 없을 때만 기본곡 세팅 업로드
           songsMap = {};
           INITIAL_SONGS.forEach((s) => { songsMap[s.id] = s; });
           songsRef.set(songsMap);
@@ -850,14 +888,13 @@
 
         updateCloudBadge("☁️ 실시간 동기화됨 (" + Object.keys(songsMap).length + "곡)", true);
         renderSidebarSongs();
-        renderActiveSongWorkspace(false); // 오디오 끊김 없이 가사/헤더만 갱신
+        renderActiveSongWorkspace(false);
       }, (err) => {
         console.error("Firebase Sync Error:", err);
-        updateCloudBadge("⚠️ 오프라인 (로컬 백업 모드)", false);
+        updateCloudBadge("⚠️ 오프라인 모드", false);
       });
     }
 
-    // 특정 곡 1개만 파이어베이스에 핀포인트 저장 (10곡, 100곡 넘어가도 병목/에러 없음)
     function saveSingleSongToCloud(songId) {
       if (isReadonly) return;
       const song = songsMap[songId];
@@ -895,7 +932,7 @@
     }
 
     /**************************************************************
-     * 5. 좌측 사이드바 & 카테고리 렌더링
+     * 6. 사이드바 및 워크스페이스 렌더링
      **************************************************************/
     function selectCategory(cat) {
       activeCategory = cat;
@@ -921,7 +958,7 @@
         const qMatch = !query ||
           (s.title && s.title.toLowerCase().includes(query)) ||
           (s.artist && s.artist.toLowerCase().includes(query)) ||
-          (s.stanzas && s.stanzas.some(st => (st.orig + st.pron + st.trans).toLowerCase().includes(query)));
+          (s.stanzas && s.stanzas.some(st => ((st.orig||"") + (st.pron||"") + (st.trans||"")).toLowerCase().includes(query)));
         return catMatch && qMatch;
       });
 
@@ -935,10 +972,11 @@
           ? "p-3 rounded-xl bg-violet-50 border-2 border-violet-500 cursor-pointer transition"
           : "p-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/70 cursor-pointer transition";
 
+        const stCount = (song.stanzas || []).length;
         item.innerHTML = `
           <div class="flex items-center justify-between gap-1 mb-0.5">
             <span class="text-[10px] font-extrabold px-2 py-0.5 rounded bg-white text-violet-700 border border-violet-200">${song.category}</span>
-            ${song.driveUrl ? '<span class="text-[10px] font-bold text-emerald-600">☁️음원</span>' : ''}
+            <span class="text-[10px] font-bold text-slate-400">${stCount}구절 ${song.driveUrl ? '· ☁️음원' : ''}</span>
           </div>
           <div class="text-sm font-extrabold text-slate-900 truncate">${song.title}</div>
           <div class="text-xs font-semibold text-slate-500 truncate">${song.artist}</div>
@@ -954,23 +992,19 @@
       renderActiveSongWorkspace(isSongChanged);
     }
 
-    /**************************************************************
-     * 6. 우측 워크스페이스 & 가사 렌더링 (음악 재생 무중단 분리)
-     **************************************************************/
     function renderActiveSongWorkspace(reloadAudioPlayer = false) {
       const song = songsMap[activeSongId];
       if (!song) return;
 
-      // 상단 메타 정보 업데이트
       document.getElementById("activeCatBadge").innerText = song.category || "J-POP";
       document.getElementById("activeKeyBadge").innerText = song.keyInfo || "원키 미지정";
       document.getElementById("activeTjBadge").innerText = song.tjKy || "노래방 번호 없음";
+      document.getElementById("activeStanzaCount").innerText = `총 ${(song.stanzas || []).length}구절`;
       document.getElementById("activeSongTitle").innerText = song.title;
       document.getElementById("activeSongArtist").innerText = song.artist;
       document.getElementById("activeVocalTip").innerText = song.vocalTip || "가사를 클릭하여 숨쉬는 곳(∨)을 표시하고 형광펜으로 발음/강세 포인트를 체크해 보세요.";
       document.getElementById("songMemoInput").value = song.memo || "";
 
-      // J-POP 전용 탭 표시 제어
       const isJpop = song.category === "J-POP";
       document.getElementById("vmode-furi").style.display = isJpop ? "inline-block" : "none";
       document.getElementById("vmode-ruby").style.display = isJpop ? "inline-block" : "none";
@@ -979,7 +1013,6 @@
         updateViewModeTabUI();
       }
 
-      // 곡이 실제로 바뀌었을 때만 구글 드라이브/오디오 갱신 (가사 체크 중에는 오디오 절대 건드리지 않음)
       if (reloadAudioPlayer || loadedAudioSongId !== song.id) {
         loadedAudioSongId = song.id;
         document.getElementById("driveUrlInput").value = song.driveUrl || "";
@@ -1003,7 +1036,6 @@
         block.className = "space-y-1.5";
 
         if (lyricViewMode === "3tier") {
-          // 1) 원문 + 2) 한국어 발음 + 3) 한국어 해석 (보내주신 첫 이미지 스타일)
           const origDiv = document.createElement("div");
           origDiv.className = "lyric-orig";
           origDiv.innerHTML = buildInteractiveLineHTML(song, sIdx, "orig", stanza.orig || "");
@@ -1023,7 +1055,6 @@
             block.appendChild(transDiv);
           }
         } else if (lyricViewMode === "furi") {
-          // J-POP 후리가나(히라가나)로만 보기 탭
           const furiText = stanza.furi || stanza.orig || "";
           const furiDiv = document.createElement("div");
           furiDiv.className = "lyric-orig text-violet-950";
@@ -1037,7 +1068,6 @@
             block.appendChild(transDiv);
           }
         } else if (lyricViewMode === "pron") {
-          // 한국어 발음만 보기 탭
           const pronText = stanza.pron || stanza.orig || "";
           const pronDiv = document.createElement("div");
           pronDiv.className = "lyric-orig text-slate-900";
@@ -1051,7 +1081,6 @@
             block.appendChild(transDiv);
           }
         } else if (lyricViewMode === "ruby") {
-          // 한자 위 루비 탭
           const rubyDiv = document.createElement("div");
           rubyDiv.className = "lyric-orig leading-loose";
           rubyDiv.innerHTML = stanza.ruby || stanza.orig || "";
@@ -1074,15 +1103,14 @@
         paper.appendChild(block);
       });
 
-      // 호흡 총 개수 집계
       if (song.marks) {
         Object.values(song.marks).forEach((lineObj) => {
           if (lineObj) totalBreaths += Object.keys(lineObj).length;
         });
       }
       document.getElementById("activeBreathCount").innerText = `호흡/기호 ∨ ${totalBreaths}곳`;
+      document.getElementById("activeStanzaCount").innerText = `총 ${(song.stanzas || []).length}구절`;
 
-      // 캔버스 크기 동기화 및 필기 복원
       setTimeout(() => resizeAndRedrawCanvas(), 30);
     }
 
@@ -1116,7 +1144,6 @@
       return html;
     }
 
-    // 글자 클릭 시 호흡 체크 / 가사 형광펜 / 지우개 동작
     function onCharClick(sIdx, lineType, cIdx) {
       if (isReadonly) {
         alert("현재 '열람 전용(수정 잠금)' 상태입니다. 우측 상단에서 잠금을 해제해 주세요.");
@@ -1151,7 +1178,7 @@
         return;
       }
 
-      renderLyricsPaperOnly(); // 오디오 중단 없이 가사만 즉시 갱신
+      renderLyricsPaperOnly();
       saveSingleSongToCloud(activeSongId);
     }
 
@@ -1168,7 +1195,7 @@
     }
 
     /**************************************************************
-     * 7. 자유 형광펜 & 연필 드로잉 캔버스 (경량 벡터 저장)
+     * 7. 자유 형광펜 & 연필 드로잉 캔버스
      **************************************************************/
     const canvas = document.getElementById("drawingCanvas");
     const ctx = canvas.getContext("2d");
@@ -1211,7 +1238,7 @@
         moveCanvasDraw(e);
       }
     }, { passive: false });
-    window.addEventListener("touchend", endCanvasDraw);
+    canvas.addEventListener("touchend", endCanvasDraw);
 
     function startCanvasDraw(e) {
       if (isReadonly) return;
@@ -1221,7 +1248,7 @@
       currentStroke = {
         mode: currentTool,
         color: currentColor,
-        pts: [pos.x, pos.y] // 1차원 배열로 경량화 저장
+        pts: [pos.x, pos.y]
       };
     }
 
@@ -1231,7 +1258,6 @@
       const pts = currentStroke.pts;
       const lastX = pts[pts.length - 2];
       const lastY = pts[pts.length - 1];
-      // 4px 이상 이동했을 때만 좌표 기록 (용량 80% 절감)
       if (Math.hypot(pos.x - lastX, pos.y - lastY) > 4) {
         pts.push(pos.x, pos.y);
         redrawCanvasStrokes(currentStroke);
@@ -1313,7 +1339,7 @@
     }
 
     /**************************************************************
-     * 8. 도구 & 가사 보기 탭 전환 컨트롤
+     * 8. 도구 & 가사 보기 탭 컨트롤
      **************************************************************/
     function selectTool(tool) {
       currentTool = tool;
@@ -1326,7 +1352,6 @@
         }
       });
 
-      // 자유 그리기/연필 모드일 때만 캔버스 터치 활성화
       if (tool === "hlDraw" || tool === "pencil") {
         canvas.className = "canvas-active";
       } else {
@@ -1449,7 +1474,6 @@
       }
     }
 
-    // 기기 로컬 오디오 파일 로드 -> Tone.js PitchShift 연결 (배속 변화 없이 피치만 ±6키 조절)
     async function handleLocalAudioUpload(input) {
       if (!input.files || !input.files[0]) return;
       const file = input.files[0];
@@ -1535,7 +1559,7 @@
 
     function seekDspAudio(percentVal) {
       if (!tonePlayer || !tonePlayer.loaded) return;
-      const targetSec = ( parseFloat(percentVal) / 100 ) * dspDuration;
+      const targetSec = (parseFloat(percentVal) / 100) * dspDuration;
       const wasPlaying = isDspPlaying;
       if (wasPlaying) tonePlayer.stop();
       dspOffset = targetSec;
@@ -1564,7 +1588,6 @@
       if (wasPlaying) toggleDspPlay();
     }
 
-    // 배속은 그대로 두고 음정(피치)만 ±6키 조절
     function changeDspPitch(delta, reset = false) {
       if (reset) {
         currentPitchSemitones = 0;
@@ -1593,7 +1616,6 @@
       if (total > 0) slider.value = (cur / total) * 100;
     }
 
-    // 마이크 직접 녹음
     async function toggleMicRecording() {
       const btn = document.getElementById("micRecordBtn");
       const timerEl = document.getElementById("recordingTimer");
@@ -1638,7 +1660,7 @@
     }
 
     /**************************************************************
-     * 10. 노래 추가 / 수정 / 프리셋 자동채우기 모달
+     * 10. 노래 추가 / 수정 모달
      **************************************************************/
     let isEditingExistingSong = false;
 
@@ -1649,18 +1671,22 @@
       modal.classList.remove("hidden");
       modal.classList.add("flex");
 
+      document.getElementById("modalParseMode").value = "auto";
+
       if (editMode) {
         const song = songsMap[activeSongId];
-        document.getElementById("songModalTitle").innerText = "✏️ 곡 및 가사 수정";
+        document.getElementById("songModalTitle").innerText = "✏️ 가사 전체 수정 / 전문 붙여넣기";
         document.getElementById("modalTitleInput").value = song.title || "";
         document.getElementById("modalArtistInput").value = song.artist || "";
         document.getElementById("modalCatInput").value = song.category || "J-POP";
-        document.getElementById("modalKeyInput").value = (song.keyInfo || "") + (song.tjKy ? " / " + song.tjKy : "");
+        document.getElementById("modalKeyInput").value = song.keyInfo || "";
         document.getElementById("modalTipInput").value = song.vocalTip || "";
 
         const rawBlocks = (song.stanzas || []).map((st) => {
-          const lines = [st.orig || "", st.pron || "", st.trans || ""];
-          if (st.furi) lines.push(st.furi);
+          const lines = [st.orig || ""];
+          if (st.pron) lines.push(st.pron);
+          if (st.trans) lines.push(st.trans);
+          if (st.furi && st.furi !== st.orig) lines.push(st.furi);
           return lines.join("\n");
         }).join("\n\n");
         document.getElementById("modalLyricsInput").value = rawBlocks;
@@ -1673,6 +1699,7 @@
         document.getElementById("modalTipInput").value = "";
         document.getElementById("modalLyricsInput").value = "";
       }
+      updateLiveParsePreview();
     }
 
     function closeSongModal() {
@@ -1683,13 +1710,45 @@
 
     function fillPresetSong(presetKey) {
       const presets = {
-        betelgeuse: {
-          title: "ベテルギウス (베텔기우스)",
-          artist: "Yuuri (유우리)",
+        heroine: {
+          title: "ヒロイン (히로인)",
+          artist: "back number (백넘버)",
           cat: "J-POP",
-          key: "F Major / TJ 68450",
-          tip: "도입부 '소라니 아루 나니카오'는 가볍게 읊조리고 후렴 가성 도약 구간에서 목에 힘을 빼세요.",
-          lyrics: "空にある何かを見つめてたら\n소라니 아루 나니카오 미츠메테타라\n하늘에 있는 무언가를 바라보다가\nそらに ある なにかを みつめてたら\n\nそれは星だって君が教えてくれた\n소레와 호시닷테 키미가 오시에테 쿠레타\n그건 별이라고 네가 알려주었어\nそれは ほしだって きみが おしえて くれた"
+          key: "Gb Major / TJ 27684",
+          tip: "도입부 '키미노 마이니치니'는 따뜻한 중저음으로 시작하고, 후렴 '유키가 키레이토'에서 연구개를 열어 감정을 실어주세요.",
+          lyrics: `君の毎日に僕は似合わないかな
+키미노 마이니치니 보쿠와 니아와나이카나
+너의 매일에 나는 어울리지 않을까
+白い空から雪が落ちた
+시로이 소라카라 유키가 오치타
+하얀 하늘에서 눈이 떨어졌어
+別にいいさと吐き出したため息が
+베츠니 이이사토 하키다시타 타메이키가
+별로 상관없다며 내뱉은 한숨이
+少し残って寂しそうに消えた
+스코시 노콧테 사비시소오니 키에타
+조금 남아 쓸쓸하게 사라졌어
+君の街にも降っているかな
+키미노 마치니모 훗테 이루카나
+네가 있는 거리에도 내리고 있을까
+ああ今隣で
+아아 이마 토나리데
+아아 지금 곁에서
+雪が綺麗と笑うのは君がいい
+유키가 키레이토 와라우노와 키미가 이이
+눈이 예쁘다고 웃는 건 너였으면 좋겠어
+でも寒いねって嬉しそうなのも
+데모 사무이넷테 우레시소오나노모
+하지만 춥네라며 기뻐 보이는 것도
+転びそうになって掴んだ手のその先で
+코로비소오니 낫테 츠칸다 테노 소노 사키데
+넘어질 뻔해서 붙잡은 손의 그 끝에서
+ありがとうって楽しそうなのも
+아리가토옷테 타노시소오나노모
+고맙다며 즐거워 보이는 것도
+それも君がいい
+소레모 키미가 이이
+그것도 너였으면 좋겠어`
         },
         pretender: {
           title: "Pretender (프리텐더)",
@@ -1697,7 +1756,49 @@
           cat: "J-POP",
           key: "Ab Major / TJ 68068",
           tip: "후렴 '굿바이' 진성 고음에서 연구개를 활짝 열고 아포지오 지지를 유지하세요.",
-          lyrics: "君とのラブストーリー それは予想通り\n키미토노 라부스토오리 소레와 요소오도오리\n너와의 러브스토리 그건 예상대로\nきみとの らぶすとーりー それは よそうどおり\n\nグッバイ 君の運命のヒトは僕じゃない\n굿바이 키미노 운메이노 히토와 보쿠자 나이\n굿바이 너의 운명의 사람은 내가 아니야\nぐっばい きみの うんめいの ひとは ぼくじゃ ない"
+          lyrics: `君とのラブストーリー それは予想通り
+키미토노 라부스토오리 소레와 요소오도오리
+너와의 러브스토리 그건 예상대로
+いざ始まればひとり芝居だ
+이자 하지마레바 히토리시바이다
+막상 시작되면 1인극이야
+ずっとそばにいたって 結局ただの観客だ
+즛토 소바니 이탓테 켓쿄쿠 타다노 칸캬쿠다
+계속 곁에 있어봤자 결국 그저 관객일 뿐이야
+感情のないアイムソーリー それはいつも通り
+칸조오노 나이 아이무소오리 소레와 이츠모도오리
+감정 없는 아임 소리 그건 언제나처럼
+慣れてしまえば悪くはないけど
+나레테 시마에바 와루쿠와 나이케도
+익숙해지면 나쁘진 않지만
+君とのロマンスは人生柄 続きはしないことを知った
+키미토노 로만스와 진세이가라 츠즈키와 시나이 코토오 싯타
+너와의 로맨스는 인생의 성향상 이어지지 않는다는 걸 알았어
+グッバイ 君の運命のヒトは僕じゃない
+굿바이 키미노 운메이노 히토와 보쿠자 나이
+굿바이 너의 운명의 사람은 내가 아니야
+辛いけど否めない でも離れ難いのさ
+츠라이케도 이나메나이 데모 하나레가타이노사
+괴롭지만 부정할 수 없어 하지만 떠나기 어려운걸`
+        },
+        betelgeuse: {
+          title: "ベテルギウス (베텔기우스)",
+          artist: "Yuuri (유우리)",
+          cat: "J-POP",
+          key: "F Major / TJ 68450",
+          tip: "도입부 '소라니 아루 나니카오'는 가볍게 읊조리고 후렴 가성 도약 구간에서 목에 힘을 빼세요.",
+          lyrics: `空にある何かを見つめてたら
+소라니 아루 나니카오 미츠메테타라
+하늘에 있는 무언가를 바라보다가
+それは星だって君が教えてくれた
+소레와 호시닷테 키미가 오시에테 쿠레타
+그건 별이라고 네가 알려주었어
+まるで僕らみたいに寄り添ってる
+마루데 보쿠라 미타이니 요리솟테루
+마치 우리들처럼 서로 기대어 있어
+泣いたり笑ったり繋いだ手
+나이타리 와랏타리 츠나이다 테
+울기도 하고 웃기도 하며 맞잡은 손`
         },
         hakujitsu: {
           title: "白日 (백일)",
@@ -1705,23 +1806,37 @@
           cat: "J-POP",
           key: "Db Major / TJ 68052",
           tip: "도입부 믹스/두성 가성 톤을 흔들림 없이 유지하는 호흡 컨트롤이 핵심입니다.",
-          lyrics: "時には誰かを知らず知らずのうちに\n토키니와 다레카오 시라즈시라즈노 우치니\n때로는 누군가를 부지불식간에\nときには だれかを しらずしらずの うちに\n\n傷つけてしまったり\n키즈츠케테 시맛타리\n상처 입히고 말거나\nきずつけて しまったり"
+          lyrics: `時には誰かを知らず知らずのうちに
+토키니와 다레카오 시라즈시라즈노 우치니
+때로는 누군가를 부지불식간에
+傷つけてしまったり
+키즈츠케테 시맛타리
+상처 입히고 말거나
+失ったりして初めて
+우시낫타리 시테 하지메테
+잃어버리고 나서야 비로소
+犯した罪を知る
+오카시타 츠미오 시루
+저지른 죄를 알게 돼`
         },
-        yorunikakeru: {
-          title: "夜に駆ける (밤을 달리다)",
-          artist: "YOASOBI",
+        lilac: {
+          title: "ライラック (라일락)",
+          artist: "Mrs. GREEN APPLE",
           cat: "J-POP",
-          key: "Eb Major / TJ 68255",
-          tip: "빠른 단어 도약에서도 숨이 차오르지 않게 짧은 끊어읽기(//) 포인트를 미리 지정하세요.",
-          lyrics: "沈むように溶けてゆくように\n시즈무요오니 토케테유쿠요오니\n가라앉듯이 녹아내리듯이\nしずむように とけてゆくように\n\n二人だけの空が広がる夜に\n후타리다케노 소라가 히로가루 요루니\n둘만의 하늘이 펼쳐지는 밤에\nふたりだけの そらが ひろがる よるに"
-        },
-        youwerebeautiful: {
-          title: "예뻤어 (You Were Beautiful)",
-          artist: "DAY6 (데이식스)",
-          cat: "K-POP",
-          key: "B Major / TJ 48622",
-          tip: "후렴 '예뻤어' 첫 음절에서 성대를 좁히지 말고 흉성과 두성 공명을 동시에 확보하세요.",
-          lyrics: "지금 이 말이 우리가 다시\n지금 이 말이 우리가 다시\n도입부 담담한 호흡 유지\n\n예뻤어 날 바라봐 주던 그 눈빛\n예뻤어 날 바라봐 주던 그 눈빛\n후렴 벨팅 포인트"
+          key: "Bb Major / TJ 68461",
+          tip: "빠른 템포 속에서도 자음 어택을 명확히 발음하고 후렴 호흡을 챙기세요.",
+          lyrics: `過ぎてゆくんだ今日も
+스기테유쿤다 쿄오모
+오늘도 그렇게 지나간다
+この寿命の通りに
+코노 주묘오노 토오리니
+이 수명처럼
+限りある数字が減るように
+카기리 아루 스우지가 헤루요오니
+정해진 숫자가 줄어들듯이
+美しい数字が増えるように
+우츠쿠시이 스우지가 후에루요오니
+아름다운 숫자가 늘어나듯이`
         }
       };
 
@@ -1733,6 +1848,7 @@
       document.getElementById("modalKeyInput").value = p.key;
       document.getElementById("modalTipInput").value = p.tip;
       document.getElementById("modalLyricsInput").value = p.lyrics;
+      updateLiveParsePreview();
     }
 
     function saveSongFromModal() {
@@ -1742,22 +1858,14 @@
       const keyRaw = document.getElementById("modalKeyInput").value.trim();
       const vocalTip = document.getElementById("modalTipInput").value.trim();
       const lyricsRaw = document.getElementById("modalLyricsInput").value.trim();
+      const parseMode = document.getElementById("modalParseMode").value;
 
       if (!title || !artist) {
         return alert("곡 제목과 가수를 입력해 주세요.");
       }
 
-      const stanzas = lyricsRaw
-        ? lyricsRaw.split(/\n\s*\n/).map((block) => {
-            const lines = block.split("\n").map(l => l.trim());
-            return {
-              orig: lines[0] || "",
-              pron: lines[1] || "",
-              trans: lines[2] || "",
-              furi: lines[3] || lines[0] || ""
-            };
-          })
-        : [{ orig: "가사를 입력해 주세요", pron: "", trans: "", furi: "" }];
+      // 스마트 가사 파서 호출 (빈 줄 없이 붙여넣은 전문도 100% 구절별로 분해)
+      const stanzas = smartParseLyricsText(lyricsRaw, parseMode);
 
       const songId = isEditingExistingSong ? activeSongId : ("song_" + Date.now());
       const existing = songsMap[songId] || {};
@@ -1797,7 +1905,6 @@
       if (activeSongId) renderActiveSongWorkspace(true);
     }
 
-    // 메모 자동 저장 (디바운스)
     let memoTimeout = null;
     function debounceSaveMemo() {
       if (isReadonly) return;
@@ -1895,7 +2002,6 @@
       reader.readAsText(input.files[0]);
     }
 
-    // 앱 시작
     window.addEventListener("DOMContentLoaded", () => {
       initFirebaseSync();
     });
