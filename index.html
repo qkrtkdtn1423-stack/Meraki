@@ -808,17 +808,17 @@
       const songsRef = rtdb.ref("vocal_studio_v3/songs");
       songsRef.on("value", (snapshot) => {
         const val = snapshot.val();
-        if (val && Object.keys(val).length > 0) {
-          songsMap = val;
-        } else {
-          songsMap = {};
-        }
-
-        const keys = Object.keys(songsMap);
-        if (!songsMap[activeSongId] && keys.length > 0) {
-          activeSongId = keys[0];
-        }
-
+     if (val && Object.keys(val).length > 0) {
+  const cleaned = {};
+  Object.entries(val).forEach(([k, v]) => {
+    if (v && typeof v === "object" && v.title) {
+      cleaned[k] = { ...v, id: v.id || k };
+    }
+  });
+  songsMap = cleaned;
+} else {
+  songsMap = {};
+}
         updateCloudBadge("☁️ 실시간 동기화됨 (" + keys.length + "곡)", true);
         renderSidebarSongs();
         renderActiveSongWorkspace(false);
