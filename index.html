@@ -965,6 +965,15 @@
       renderLyricsPaperOnly();
     }
 
+ function buildStudyButtonHTML(song, sIdx) {
+      const note = song.studyNotes && song.studyNotes[sIdx];
+      const hasNote = !!(note && ((note.vocab && note.vocab.trim()) || (note.grammar && note.grammar.trim())));
+      const cls = hasNote
+        ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+        : "bg-blue-50/80 text-blue-600 border-blue-400 hover:bg-blue-100";
+      return `<button type="button" onclick="openStudyDrawer(${sIdx}, event)" class="inline-flex items-center align-middle ml-2 px-2 py-0.5 rounded-lg border-2 text-xs font-extrabold transition ${cls}">${hasNote ? '공부 ✓' : '공부'}</button>`;
+    }
+
     function renderLyricsPaperOnly() {
       const song = songsMap[activeSongId];
       if (!song) return;
@@ -976,11 +985,12 @@
       (song.stanzas || []).forEach((stanza, sIdx) => {
         const block = document.createElement("div");
         block.className = "space-y-1.5";
+        const studyBtn = buildStudyButtonHTML(song, sIdx);
 
         if (lyricViewMode === "3tier") {
           const origDiv = document.createElement("div");
           origDiv.className = "lyric-orig";
-          origDiv.innerHTML = buildInteractiveLineHTML(song, sIdx, "orig", stanza.orig || "");
+          origDiv.innerHTML = buildInteractiveLineHTML(song, sIdx, "orig", stanza.orig || "") + studyBtn;
           block.appendChild(origDiv);
 
           if (stanza.pron) {
@@ -1000,7 +1010,7 @@
           const furiText = stanza.furi || stanza.orig || "";
           const furiDiv = document.createElement("div");
           furiDiv.className = "lyric-orig text-violet-950";
-          furiDiv.innerHTML = buildInteractiveLineHTML(song, sIdx, "furi", furiText);
+          furiDiv.innerHTML = buildInteractiveLineHTML(song, sIdx, "furi", furiText) + studyBtn;
           block.appendChild(furiDiv);
           if (showSubTrans && stanza.trans) {
             const transDiv = document.createElement("div");
@@ -1012,7 +1022,7 @@
           const pronText = stanza.pron || stanza.orig || "";
           const pronDiv = document.createElement("div");
           pronDiv.className = "lyric-orig text-slate-900";
-          pronDiv.innerHTML = buildInteractiveLineHTML(song, sIdx, "pron", pronText);
+          pronDiv.innerHTML = buildInteractiveLineHTML(song, sIdx, "pron", pronText) + studyBtn;
           block.appendChild(pronDiv);
           if (showSubTrans && stanza.trans) {
             const transDiv = document.createElement("div");
@@ -1023,7 +1033,7 @@
         } else if (lyricViewMode === "ruby") {
           const rubyDiv = document.createElement("div");
           rubyDiv.className = "lyric-orig leading-loose";
-          rubyDiv.innerHTML = stanza.ruby || stanza.orig || "";
+          rubyDiv.innerHTML = (stanza.ruby || stanza.orig || "") + studyBtn;
           block.appendChild(rubyDiv);
           if (stanza.pron) {
             const pronDiv = document.createElement("div");
@@ -1037,6 +1047,19 @@
             transDiv.innerText = stanza.trans;
             block.appendChild(transDiv);
           }
+        }
+        paper.appendChild(block);
+      });
+
+      if (song.marks) {
+        Object.values(song.marks).forEach((lineObj) => {
+          if (lineObj) totalBreaths += Object.keys(lineObj).length;
+        });
+      }
+      document.getElementById("activeBreathCount").innerText = `호흡/기호 ∨ ${totalBreaths}곳`;
+      document.getElementById("activeStanzaCount").innerText = `총 ${(song.stanzas || []).length}구절`;
+      setTimeout(() => resizeAndRedrawCanvas(), 30);
+    }
         }
         paper.appendChild(block);
       });
@@ -2036,6 +2059,141 @@
       window.addEventListener("scroll", updateDockVisibility, { passive: true });
       window.addEventListener("load", () => { syncDockLabels(); updateDockVisibility(); });
     })();
+  </script>
+  <!-- 화면 절반 크기 가사 공부 메모장 (PC: 우측 반 / 모바일: 하단 반) -->
+  <div id="studyDrawer" class="fixed bottom-0 right-0 w-full h-[55vh] md:top-0 md:h-full md:w-1/2 bg-white border-t-2 md:border-t-0 md:border-l-2 border-blue-200 shadow-2xl z-50 hidden flex-col">
+    <!-- 상단 바 -->
+    <div class="px-5 py-3.5 bg-blue-600 text-white flex items-center justify-between gap-2 flex-shrink-0">
+      <div class="flex items-center gap-2">
+        <span class="text-base font-black">📘 가사 단어 · 문법 공부 노트</span>
+        <span id="studyStanzaBadge" class="text-xs font-bold bg-blue-500 px-2 py-0.5 rounded-full">1 / 1</span>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <button onclick="moveStudyStanza(-1)" class="px-2.5 py-1 rounded-lg bg-blue-500 hover:bg-blue-400 text-xs font-extrabold transition">◀ 이전 줄</button>
+        <button onclick="moveStudyStanza(1)" class="px-2.5 py-1 rounded-lg bg-blue-500 hover:bg-blue-400 text-xs font-extrabold transition">다음 줄 ▶</button>
+        <button onclick="closeStudyDrawer()" class="ml-1 w-7 h-7 rounded-lg bg-blue-700 hover:bg-blue-800 text-sm font-black transition">✕</button>
+      </div>
+    </div>
+
+    <!-- 본문 스크롤 영역 -->
+    <div class="flex-1 overflow-y-auto p-5 space-y-4">
+      <!-- 현재 공부 중인 가사 구절 요약 -->
+      <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-1.5">
+        <div id="studyOrigText" class="text-lg font-black text-slate-900"></div>
+        <div id="studyPronText" class="text-sm font-semibold text-slate-600"></div>
+        <div id="studyTransText" class="text-sm font-bold text-violet-600"></div>
+      </div>
+
+      <!-- 히라가나(후리가나) 입력칸 -->
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <label class="text-xs font-extrabold text-blue-700">あ 히라가나 (후리가나) 정리</label>
+          <span class="text-[11px] text-slate-400">입력하면 '후리가나만 보기' 탭에도 자동 반영됩니다</span>
+        </div>
+        <input type="text" id="studyFuriInput" oninput="debounceSaveStudyNote()" placeholder="예: はりさける ほどの こえが かぜに ながれても"
+          class="w-full px-3.5 py-2.5 text-sm font-bold bg-blue-50/40 border border-blue-200 rounded-xl text-slate-900 focus:outline-none focus:bg-white focus:border-blue-500">
+      </div>
+
+      <!-- 단어 정리 메모 -->
+      <div>
+        <label class="block text-xs font-extrabold text-slate-700 mb-1">📖 단어 정리 (한자 · 히라가나 · 뜻)</label>
+        <textarea id="studyVocabInput" oninput="debounceSaveStudyNote()" rows="5" placeholder="예:&#10;・張り裂ける (はりさける) : 찢어지다, 터질 듯하다&#10;・声 (こえ) : 목소리&#10;・流れる (ながれる) : 흐르다, 떠내려가다"
+          class="w-full px-3.5 py-3 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-800 leading-relaxed focus:outline-none focus:bg-white focus:border-blue-500"></textarea>
+      </div>
+
+      <!-- 문법 및 표현 메모 -->
+      <div>
+        <label class="block text-xs font-extrabold text-slate-700 mb-1">📝 문법 · 표현 포인트</label>
+        <textarea id="studyGrammarInput" oninput="debounceSaveStudyNote()" rows="5" placeholder="예:&#10;・~ほどの : ~할 정도의 (정도 강조)&#10;・~ても : ~해도 (역접 조건, 流れる → 流れても)"
+          class="w-full px-3.5 py-3 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-800 leading-relaxed focus:outline-none focus:bg-white focus:border-blue-500"></textarea>
+      </div>
+    </div>
+
+    <!-- 하단 상태 바 -->
+    <div class="px-5 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between flex-shrink-0">
+      <span id="studySaveStatus" class="text-xs font-bold text-slate-400">입력 시 클라우드에 자동 저장됩니다</span>
+      <button onclick="saveStudyNoteNow()" class="px-4 py-2 rounded-xl text-xs font-extrabold bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition">
+        💾 저장 완료
+      </button>
+    </div>
+  </div>
+
+  <script>
+    let activeStudyStanzaIdx = 0;
+    let studySaveTimer = null;
+
+    function openStudyDrawer(sIdx, ev) {
+      if (ev) ev.stopPropagation();
+      const song = songsMap[activeSongId];
+      if (!song || !song.stanzas || !song.stanzas[sIdx]) return;
+
+      activeStudyStanzaIdx = sIdx;
+      const stanza = song.stanzas[sIdx];
+      const note = (song.studyNotes && song.studyNotes[sIdx]) || { vocab: "", grammar: "" };
+
+      document.getElementById("studyStanzaBadge").innerText = `${sIdx + 1} / ${song.stanzas.length}구절`;
+      document.getElementById("studyOrigText").innerText = stanza.orig || "";
+      document.getElementById("studyPronText").innerText = stanza.pron || "";
+      document.getElementById("studyTransText").innerText = stanza.trans || "";
+
+      document.getElementById("studyFuriInput").value = (stanza.furi && stanza.furi !== stanza.orig) ? stanza.furi : (stanza.furi || "");
+      document.getElementById("studyVocabInput").value = note.vocab || "";
+      document.getElementById("studyGrammarInput").value = note.grammar || "";
+      document.getElementById("studySaveStatus").innerText = isReadonly ? "🔒 열람 전용 모드 (수정 불가)" : "입력 시 클라우드에 자동 저장됩니다";
+
+      const drawer = document.getElementById("studyDrawer");
+      drawer.classList.remove("hidden");
+      drawer.classList.add("flex");
+    }
+
+    function closeStudyDrawer() {
+      const drawer = document.getElementById("studyDrawer");
+      drawer.classList.add("hidden");
+      drawer.classList.remove("flex");
+    }
+
+    function moveStudyStanza(delta) {
+      const song = songsMap[activeSongId];
+      if (!song || !song.stanzas) return;
+      const nextIdx = activeStudyStanzaIdx + delta;
+      if (nextIdx >= 0 && nextIdx < song.stanzas.length) {
+        openStudyDrawer(nextIdx);
+      }
+    }
+
+    function debounceSaveStudyNote() {
+      if (isReadonly) return;
+      document.getElementById("studySaveStatus").innerText = "⏳ 저장 중...";
+      clearTimeout(studySaveTimer);
+      studySaveTimer = setTimeout(saveStudyNoteNow, 500);
+    }
+
+    function saveStudyNoteNow() {
+      if (isReadonly) return alert("현재 열람 전용(잠금) 상태입니다.");
+      const song = songsMap[activeSongId];
+      if (!song || !song.stanzas || !song.stanzas[activeStudyStanzaIdx]) return;
+
+      const furiVal = document.getElementById("studyFuriInput").value.trim();
+      const vocabVal = document.getElementById("studyVocabInput").value;
+      const grammarVal = document.getElementById("studyGrammarInput").value;
+
+      // 히라가나 입력값은 해당 구절의 furi에도 바로 연동
+      if (furiVal) {
+        song.stanzas[activeStudyStanzaIdx].furi = furiVal;
+      }
+
+      if (!song.studyNotes) song.studyNotes = {};
+      song.studyNotes[activeStudyStanzaIdx] = {
+        vocab: vocabVal,
+        grammar: grammarVal,
+        updatedAt: Date.now()
+      };
+
+      renderLyricsPaperOnly();
+      saveSingleSongToCloud(activeSongId);
+      const now = new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      document.getElementById("studySaveStatus").innerText = `☁️ 저장 완료 (${now})`;
+    }
   </script>
 </body>
 </html>
