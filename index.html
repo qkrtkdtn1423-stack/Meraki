@@ -57,7 +57,7 @@
             <h1 class="text-lg font-black text-slate-900 tracking-tight">보컬 노트 Studio</h1>
             <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 border border-violet-200">@Meraki Cloud</span>
           </div>
-          <p class="text-xs text-slate-500">호흡(∨) · 가수별 정렬 · MR/완성도 · 연습 캘린더 · ±6키 피치</p>
+          <p class="text-xs text-slate-500">가수별 정렬 · MR/완성도 · 단어/문법 공부 · A-B 구간반복 · 캘린더</p>
         </div>
       </div>
 
@@ -107,7 +107,7 @@
           <button onclick="forceSyncFromFirebase()" class="text-[11px] font-bold text-violet-600 hover:underline">🔄 새로고침</button>
         </div>
 
-        <!-- 정렬 바 (가수별 / 기본순 / 완성도순 / MR보유) -->
+        <!-- 정렬 바 -->
         <div class="grid grid-cols-4 gap-1 py-2 mb-1 border-b border-slate-100">
           <button onclick="setSortMode('artist')" id="sort-artist" class="py-1 rounded-lg text-[11px] font-extrabold bg-violet-100 text-violet-700 border border-violet-200 transition">🎤 가수별</button>
           <button onclick="setSortMode('default')" id="sort-default" class="py-1 rounded-lg text-[11px] font-bold bg-slate-50 text-slate-600 hover:bg-slate-100 transition">기본순</button>
@@ -149,9 +149,7 @@
         <div class="mt-3.5 bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3">
           <div class="flex items-center gap-2">
             <span class="text-xs font-extrabold text-slate-600">MR 유무:</span>
-            <button onclick="toggleActiveSongMr()" id="activeMrToggleBtn" class="px-3 py-1 rounded-lg text-xs font-extrabold border transition">
-              MR 없음 (X)
-            </button>
+            <button onclick="toggleActiveSongMr()" id="activeMrToggleBtn" class="px-3 py-1 rounded-lg text-xs font-extrabold border transition">MR 없음 (X)</button>
           </div>
 
           <div class="flex items-center gap-3 flex-1 min-w-[220px] max-w-md">
@@ -166,6 +164,7 @@
           <p id="activeVocalTip" class="text-xs font-semibold text-violet-950 leading-relaxed flex-1"></p>
         </div>
 
+        <!-- 오디오 스튜디오 패널 -->
         <div id="audioStudioDrawer" class="mt-4 bg-slate-900 text-white rounded-2xl p-4 shadow-inner">
           <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800">
             <div class="flex items-center gap-2">
@@ -211,18 +210,19 @@
             </div>
           </div>
 
-          <div id="dspPlayerBar" class="mt-3 bg-slate-800/90 border border-slate-700 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3">
-            <div class="flex items-center gap-2.5 flex-1 min-w-[240px]">
+          <div id="dspPlayerBar" class="mt-3 bg-slate-800/90 border border-slate-700 rounded-xl p-3 flex flex-wrap items-center justify-between gap-2.5">
+            <div class="flex items-center gap-2.5 flex-1 min-w-[220px]">
               <button onclick="toggleDspPlay()" id="dspPlayBtn" class="w-10 h-10 rounded-xl bg-violet-600 hover:bg-violet-500 flex items-center justify-center text-white font-black text-sm shadow">▶</button>
               <div class="flex-1">
                 <div class="flex justify-between text-[11px] text-slate-300 font-bold mb-1">
-                  <span id="dspTrackTitle">기기 파일 또는 마이크 녹음을 선택하면 피치(±6키) 조절이 활성화됩니다</span>
+                  <span id="dspTrackTitle">기기 파일 또는 마이크 녹음을 선택하면 피치/배속/구간반복이 활성화됩니다</span>
                   <span id="dspTimeLabel" class="font-mono">00:00 / 00:00</span>
                 </div>
                 <input type="range" id="dspSeekSlider" min="0" max="100" value="0" step="0.1" oninput="seekDspAudio(this.value)" class="w-full accent-violet-500 cursor-pointer h-1.5 bg-slate-700 rounded-lg">
               </div>
             </div>
 
+            <!-- 세밀한 배속 조절 (0.05 단위 + 퀵 프리셋) -->
             <div class="flex items-center gap-1.5 bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-700 flex-wrap">
               <span class="text-[11px] text-slate-400 font-bold">배속</span>
               <button onclick="changeDspSpeed(-0.05)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-xs font-black text-sky-300">-</button>
@@ -236,26 +236,29 @@
               </div>
             </div>
 
+            <!-- 음원 피치 조절 -->
             <div class="flex items-center gap-1.5 bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-700">
-              <span class="text-[11px] text-slate-400 font-bold">음원 키(Pitch)</span>
+              <span class="text-[11px] text-slate-400 font-bold">음원 키</span>
               <button onclick="changeDspPitch(-1)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-xs font-black text-sky-300">♭</button>
-              <span id="dspPitchLabel" class="text-xs font-extrabold text-emerald-400 min-w-[60px] text-center">원키(0)</span>
+              <span id="dspPitchLabel" class="text-xs font-extrabold text-emerald-400 min-w-[54px] text-center">원키(0)</span>
               <button onclick="changeDspPitch(1)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-xs font-black text-rose-300">♯</button>
               <button onclick="changeDspPitch(0, true)" class="text-[11px] text-slate-400 hover:text-white ml-1 underline">리셋</button>
             </div>
-<!-- A-B 구간 반복 컨트롤 -->
+
+            <!-- A-B 구간 반복 컨트롤 -->
             <div class="flex items-center gap-1.5 bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-700">
               <span class="text-[11px] text-slate-400 font-bold">구간반복</span>
               <button onclick="setLoopPointA()" id="btnLoopA" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-amber-300 transition">A 지정</button>
               <button onclick="setLoopPointB()" id="btnLoopB" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-amber-300 transition">B 지정</button>
               <button onclick="clearAbLoop()" id="btnLoopClear" class="hidden px-2 py-0.5 rounded bg-rose-900/80 hover:bg-rose-800 text-[11px] font-extrabold text-rose-200 transition">해제</button>
             </div>
+
             <a id="downloadAudioBtn" class="hidden px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-bold text-white" download="vocal_practice.webm">💾 저장</a>
           </div>
         </div>
       </section>
 
-      <!-- 곡별 자유 보컬 피드백 노트 (맨 위로 이동됨) -->
+      <!-- 곡별 자유 보컬 피드백 노트 (맨 위 배치) -->
       <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
         <div class="flex items-center justify-between mb-2">
           <h3 class="text-sm font-extrabold text-slate-800">📝 내 보컬 레슨 피드백 & 연습 메모</h3>
@@ -383,7 +386,68 @@
     </aside>
   </div>
 
-  <!-- 모달 1: 노래 추가 / 수정 모달 (가수 자동완성 + MR + 완성도 포함) -->
+  <!-- 스크롤 시 우측에 따라오는 슬림 보컬 리모컨 -->
+  <div id="floatingPracticeDock" class="fixed right-3 top-1/2 -translate-y-1/2 z-40 hidden flex-col items-center gap-2 bg-slate-900/90 backdrop-blur-md text-white p-2 rounded-2xl shadow-xl border border-slate-700/80 w-[84px]">
+    <button onclick="toggleDspPlay()" id="floatPlayBtn" title="재생 / 일시정지" class="w-full py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-black text-base shadow transition flex items-center justify-center">▶</button>
+    <div class="w-full bg-slate-800/90 rounded-xl p-1.5 flex flex-col items-center gap-1 border border-slate-700">
+      <span class="text-[10px] font-bold text-slate-400">속도</span>
+      <span id="floatSpeedLabel" class="text-xs font-extrabold text-violet-300">1.00x</span>
+      <div class="grid grid-cols-2 gap-1 w-full">
+        <button onclick="changeDspSpeed(-0.05)" class="py-1 rounded-lg bg-slate-700 hover:bg-slate-600 text-xs font-black text-sky-300">-</button>
+        <button onclick="changeDspSpeed(0.05)" class="py-1 rounded-lg bg-slate-700 hover:bg-slate-600 text-xs font-black text-rose-300">+</button>
+      </div>
+    </div>
+    <button onclick="openSongModal(true)" class="w-full py-2 rounded-xl bg-slate-800 hover:bg-violet-600 text-[11px] font-extrabold text-slate-200 border border-slate-700 transition">✏️ 가사수정</button>
+    <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="w-full py-1 rounded-lg text-[10px] font-bold text-slate-400 hover:text-white transition">▲ 위로</button>
+  </div>
+
+  <!-- 화면 절반 크기 가사 공부 메모장 (PC: 우측 반 / 모바일: 하단 반) -->
+  <div id="studyDrawer" class="fixed bottom-0 right-0 w-full h-[55vh] md:top-0 md:h-full md:w-1/2 bg-white border-t-2 md:border-t-0 md:border-l-2 border-blue-200 shadow-2xl z-50 hidden flex-col">
+    <div class="px-5 py-3.5 bg-blue-600 text-white flex items-center justify-between gap-2 flex-shrink-0">
+      <div class="flex items-center gap-2">
+        <span class="text-base font-black">📘 가사 단어 · 문법 공부 노트</span>
+        <span id="studyStanzaBadge" class="text-xs font-bold bg-blue-500 px-2 py-0.5 rounded-full">1 / 1</span>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <button onclick="moveStudyStanza(-1)" class="px-2.5 py-1 rounded-lg bg-blue-500 hover:bg-blue-400 text-xs font-extrabold transition">◀ 이전 줄</button>
+        <button onclick="moveStudyStanza(1)" class="px-2.5 py-1 rounded-lg bg-blue-500 hover:bg-blue-400 text-xs font-extrabold transition">다음 줄 ▶</button>
+        <button onclick="closeStudyDrawer()" class="ml-1 w-7 h-7 rounded-lg bg-blue-700 hover:bg-blue-800 text-sm font-black transition">✕</button>
+      </div>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-5 space-y-4">
+      <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-1.5">
+        <div id="studyOrigText" class="text-lg font-black text-slate-900"></div>
+        <div id="studyPronText" class="text-sm font-semibold text-slate-600"></div>
+        <div id="studyTransText" class="text-sm font-bold text-violet-600"></div>
+      </div>
+
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <label class="text-xs font-extrabold text-blue-700">あ 히라가나 (후리가나) 정리</label>
+          <span class="text-[11px] text-slate-400">'후리가나만 보기' 탭에도 자동 반영됩니다</span>
+        </div>
+        <input type="text" id="studyFuriInput" oninput="debounceSaveStudyNote()" placeholder="예: はりさける ほどの こえが かぜに ながれても" class="w-full px-3.5 py-2.5 text-sm font-bold bg-blue-50/40 border border-blue-200 rounded-xl text-slate-900 focus:outline-none focus:bg-white focus:border-blue-500">
+      </div>
+
+      <div>
+        <label class="block text-xs font-extrabold text-slate-700 mb-1">📖 단어 정리 (한자 · 히라가나 · 뜻)</label>
+        <textarea id="studyVocabInput" oninput="debounceSaveStudyNote()" rows="5" placeholder="예:&#10;・張り裂ける (はりさける) : 찢어지다, 터질 듯하다&#10;・声 (こえ) : 목소리" class="w-full px-3.5 py-3 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-800 leading-relaxed focus:outline-none focus:bg-white focus:border-blue-500"></textarea>
+      </div>
+
+      <div>
+        <label class="block text-xs font-extrabold text-slate-700 mb-1">📝 문법 · 표현 포인트</label>
+        <textarea id="studyGrammarInput" oninput="debounceSaveStudyNote()" rows="5" placeholder="예:&#10;・~ほどの : ~할 정도의&#10;・~ても : ~해도 (역접 조건)" class="w-full px-3.5 py-3 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-800 leading-relaxed focus:outline-none focus:bg-white focus:border-blue-500"></textarea>
+      </div>
+    </div>
+
+    <div class="px-5 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between flex-shrink-0">
+      <span id="studySaveStatus" class="text-xs font-bold text-slate-400">입력 시 클라우드에 자동 저장됩니다</span>
+      <button onclick="saveStudyNoteNow()" class="px-4 py-2 rounded-xl text-xs font-extrabold bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition">💾 저장 완료</button>
+    </div>
+  </div>
+
+  <!-- 모달 1: 노래 추가 / 수정 모달 -->
   <div id="songModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
     <div class="bg-white rounded-3xl max-w-3xl w-full max-h-[92vh] overflow-y-auto p-6 shadow-2xl border border-slate-200">
       <div class="flex items-center justify-between pb-3 border-b border-slate-100">
@@ -523,7 +587,7 @@
     let calendarLogsMap = {};
     let activeSongId = "";
     let activeCategory = "ALL";
-    let sortMode = "artist"; // 'artist' | 'default' | 'completion' | 'mr'
+    let sortMode = "artist";
     let lyricViewMode = "3tier";
     let showSubTrans = true;
 
@@ -537,6 +601,7 @@
     let calMonth = nowInit.getMonth();
     let selectedDateStr = formatDateKey(nowInit);
     let draftDaySongs = [];
+    let currentDayPracticedFlag = false;
 
     let isReadonly = false;
     let ownerPin = localStorage.getItem("vocal_owner_pin") || "1234";
@@ -553,17 +618,27 @@
     let dspTimerInterval = null;
     let loopPointA = null;
     let loopPointB = null;
+
     let mediaRecorder = null;
     let recordedChunks = [];
     let isRecording = false;
     let recTimerInterval = null;
     let recSeconds = 0;
 
+    let activeStudyStanzaIdx = 0;
+    let studySaveTimer = null;
+    let isEditingExistingSong = false;
+    let memoTimeout = null;
+
     function formatDateKey(dateObj) {
       const y = dateObj.getFullYear();
       const m = String(dateObj.getMonth() + 1).padStart(2, "0");
       const d = String(dateObj.getDate()).padStart(2, "0");
       return `${y}-${m}-${d}`;
+    }
+
+    function fmtSec(s) {
+      return String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(Math.floor(s % 60)).padStart(2, "0");
     }
 
     function filterValidSongs(rawObj) {
@@ -637,6 +712,7 @@
       if (countEl) countEl.innerText = `인식된 구절: 총 ${raw.trim() ? parsed.length : 0}구절`;
     }
 
+    /* Firebase 동기화 */
     function initFirebaseSync() {
       const songsRef = rtdb.ref("vocal_studio_v3/songs");
       songsRef.on("value", (snapshot) => {
@@ -697,6 +773,7 @@
       if (dotEl) dotEl.className = ok ? "w-2 h-2 rounded-full bg-emerald-500" : "w-2 h-2 rounded-full bg-amber-500";
     }
 
+    /* 페이지 전환 */
     function switchMainPage(page) {
       const studioEl = document.getElementById("studioPageContainer");
       const calEl = document.getElementById("calendarPageContainer");
@@ -722,9 +799,10 @@
         tabCal.className = "px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition";
         setTimeout(() => resizeAndRedrawCanvas(), 30);
       }
+      updateFloatingDockVisibility();
     }
 
-    /* MR 유무 & 완성도 컨트롤 */
+    /* MR & 완성도 & 즐겨찾기 */
     function toggleActiveSongMr() {
       if (isReadonly) return alert("잠금 상태입니다.");
       const song = songsMap[activeSongId];
@@ -804,6 +882,7 @@
       }
     }
 
+    /* 사이드바 필터 & 정렬 */
     function selectCategory(cat) {
       activeCategory = cat;
       ["ALL", "FAV", "J-POP", "K-POP", "POP"].forEach((c) => {
@@ -839,10 +918,7 @@
       const starIcon = song.favorite ? "⭐" : "☆";
       const hasMr = !!song.hasMr;
       const comp = Number(song.completion) || 0;
-
-      const mrBadgeClass = hasMr
-        ? "bg-emerald-100 text-emerald-700 border-emerald-200"
-        : "bg-slate-200/70 text-slate-500 border-slate-200";
+      const mrBadgeClass = hasMr ? "bg-emerald-100 text-emerald-700 border-emerald-200" : "bg-slate-200/70 text-slate-500 border-slate-200";
       const compColor = comp >= 80 ? "bg-emerald-500" : (comp >= 40 ? "bg-violet-500" : "bg-amber-400");
 
       item.innerHTML = `
@@ -857,9 +933,7 @@
         <div class="flex items-center justify-between gap-2 mt-1">
           <span class="text-xs font-semibold text-slate-500 truncate">${song.artist || '가수 미지정'}</span>
           <div class="flex items-center gap-1 flex-shrink-0">
-            <button onclick="toggleMrFromList('${song.id}', event)" title="클릭해서 MR 유무 변경" class="text-[10px] font-extrabold px-1.5 py-0.5 rounded border ${mrBadgeClass} hover:opacity-80 transition">
-              ${hasMr ? 'MR O' : 'MR X'}
-            </button>
+            <button onclick="toggleMrFromList('${song.id}', event)" title="클릭해서 MR 유무 변경" class="text-[10px] font-extrabold px-1.5 py-0.5 rounded border ${mrBadgeClass} hover:opacity-80 transition">${hasMr ? 'MR O' : 'MR X'}</button>
             <span class="text-[10px] font-black px-1.5 py-0.5 rounded bg-violet-100 text-violet-700">${comp}%</span>
           </div>
         </div>
@@ -881,7 +955,6 @@
         if (activeCategory === "FAV") catMatch = !!s.favorite;
         else if (activeCategory !== "ALL") catMatch = s.category === activeCategory;
         if (sortMode === "mr" && !s.hasMr) return false;
-
         const qMatch = !query ||
           (s.title && s.title.toLowerCase().includes(query)) ||
           (s.artist && s.artist.toLowerCase().includes(query)) ||
@@ -892,33 +965,23 @@
       document.getElementById("songCountLabel").innerText = `연습곡 목록 (${filtered.length}곡)`;
 
       if (sortMode === "artist") {
-        // 가수별 그룹 헤더 + 정렬
         const grouped = {};
         filtered.forEach((s) => {
           const artistKey = (s.artist || "가수 미지정").trim() || "가수 미지정";
           if (!grouped[artistKey]) grouped[artistKey] = [];
           grouped[artistKey].push(s);
         });
-
-        const sortedArtists = Object.keys(grouped).sort((a, b) => a.localeCompare(b, "ko"));
-        sortedArtists.forEach((artistName) => {
+        Object.keys(grouped).sort((a, b) => a.localeCompare(b, "ko")).forEach((artistName) => {
           const groupSongs = grouped[artistName].sort((a, b) => (a.title || "").localeCompare(b.title || "", "ko"));
           const header = document.createElement("div");
           header.className = "sticky top-0 z-10 bg-slate-100/95 backdrop-blur px-2.5 py-1 rounded-lg text-[11px] font-black text-slate-700 flex items-center justify-between mt-2 first:mt-0 border border-slate-200/80";
           header.innerHTML = `<span>🎤 ${artistName}</span><span class="text-violet-600">${groupSongs.length}곡</span>`;
           container.appendChild(header);
-
-          groupSongs.forEach((song) => {
-            container.appendChild(createSongCardElement(song));
-          });
+          groupSongs.forEach((song) => container.appendChild(createSongCardElement(song)));
         });
       } else {
-        if (sortMode === "completion") {
-          filtered.sort((a, b) => (Number(b.completion) || 0) - (Number(a.completion) || 0));
-        }
-        filtered.forEach((song) => {
-          container.appendChild(createSongCardElement(song));
-        });
+        if (sortMode === "completion") filtered.sort((a, b) => (Number(b.completion) || 0) - (Number(a.completion) || 0));
+        filtered.forEach((song) => container.appendChild(createSongCardElement(song)));
       }
     }
 
@@ -929,6 +992,7 @@
       renderActiveSongWorkspace(isSongChanged);
     }
 
+    /* 가사 본문 & 공부 버튼 */
     function renderActiveSongWorkspace(reloadAudioPlayer = false) {
       const song = songsMap[activeSongId];
       if (!song) return;
@@ -965,7 +1029,7 @@
       renderLyricsPaperOnly();
     }
 
- function buildStudyButtonHTML(song, sIdx) {
+    function buildStudyButtonHTML(song, sIdx) {
       const note = song.studyNotes && song.studyNotes[sIdx];
       const hasNote = !!(note && ((note.vocab && note.vocab.trim()) || (note.grammar && note.grammar.trim())));
       const cls = hasNote
@@ -1052,22 +1116,7 @@
       });
 
       if (song.marks) {
-        Object.values(song.marks).forEach((lineObj) => {
-          if (lineObj) totalBreaths += Object.keys(lineObj).length;
-        });
-      }
-      document.getElementById("activeBreathCount").innerText = `호흡/기호 ∨ ${totalBreaths}곳`;
-      document.getElementById("activeStanzaCount").innerText = `총 ${(song.stanzas || []).length}구절`;
-      setTimeout(() => resizeAndRedrawCanvas(), 30);
-    }
-        }
-        paper.appendChild(block);
-      });
-
-      if (song.marks) {
-        Object.values(song.marks).forEach((lineObj) => {
-          if (lineObj) totalBreaths += Object.keys(lineObj).length;
-        });
+        Object.values(song.marks).forEach((lineObj) => { if (lineObj) totalBreaths += Object.keys(lineObj).length; });
       }
       document.getElementById("activeBreathCount").innerText = `호흡/기호 ∨ ${totalBreaths}곳`;
       document.getElementById("activeStanzaCount").innerText = `총 ${(song.stanzas || []).length}구절`;
@@ -1135,6 +1184,71 @@
       }
     }
 
+    /* 반화면 공부 메모장 */
+    function openStudyDrawer(sIdx, ev) {
+      if (ev) ev.stopPropagation();
+      const song = songsMap[activeSongId];
+      if (!song || !song.stanzas || !song.stanzas[sIdx]) return;
+
+      activeStudyStanzaIdx = sIdx;
+      const stanza = song.stanzas[sIdx];
+      const note = (song.studyNotes && song.studyNotes[sIdx]) || { vocab: "", grammar: "" };
+
+      document.getElementById("studyStanzaBadge").innerText = `${sIdx + 1} / ${song.stanzas.length}구절`;
+      document.getElementById("studyOrigText").innerText = stanza.orig || "";
+      document.getElementById("studyPronText").innerText = stanza.pron || "";
+      document.getElementById("studyTransText").innerText = stanza.trans || "";
+
+      document.getElementById("studyFuriInput").value = (stanza.furi && stanza.furi !== stanza.orig) ? stanza.furi : (stanza.furi || "");
+      document.getElementById("studyVocabInput").value = note.vocab || "";
+      document.getElementById("studyGrammarInput").value = note.grammar || "";
+      document.getElementById("studySaveStatus").innerText = isReadonly ? "🔒 열람 전용 모드 (수정 불가)" : "입력 시 클라우드에 자동 저장됩니다";
+
+      const drawer = document.getElementById("studyDrawer");
+      drawer.classList.remove("hidden");
+      drawer.classList.add("flex");
+    }
+
+    function closeStudyDrawer() {
+      const drawer = document.getElementById("studyDrawer");
+      drawer.classList.add("hidden");
+      drawer.classList.remove("flex");
+    }
+
+    function moveStudyStanza(delta) {
+      const song = songsMap[activeSongId];
+      if (!song || !song.stanzas) return;
+      const nextIdx = activeStudyStanzaIdx + delta;
+      if (nextIdx >= 0 && nextIdx < song.stanzas.length) openStudyDrawer(nextIdx);
+    }
+
+    function debounceSaveStudyNote() {
+      if (isReadonly) return;
+      document.getElementById("studySaveStatus").innerText = "⏳ 저장 중...";
+      clearTimeout(studySaveTimer);
+      studySaveTimer = setTimeout(saveStudyNoteNow, 500);
+    }
+
+    function saveStudyNoteNow() {
+      if (isReadonly) return alert("현재 열람 전용(잠금) 상태입니다.");
+      const song = songsMap[activeSongId];
+      if (!song || !song.stanzas || !song.stanzas[activeStudyStanzaIdx]) return;
+
+      const furiVal = document.getElementById("studyFuriInput").value.trim();
+      const vocabVal = document.getElementById("studyVocabInput").value;
+      const grammarVal = document.getElementById("studyGrammarInput").value;
+
+      if (furiVal) song.stanzas[activeStudyStanzaIdx].furi = furiVal;
+      if (!song.studyNotes) song.studyNotes = {};
+      song.studyNotes[activeStudyStanzaIdx] = { vocab: vocabVal, grammar: grammarVal, updatedAt: Date.now() };
+
+      renderLyricsPaperOnly();
+      saveSingleSongToCloud(activeSongId);
+      const now = new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      document.getElementById("studySaveStatus").innerText = `☁️ 저장 완료 (${now})`;
+    }
+
+    /* 캔버스 필기 & 지우개 */
     const canvas = document.getElementById("drawingCanvas");
     const ctx = canvas.getContext("2d");
     let isDrawing = false;
@@ -1180,10 +1294,7 @@
         return true;
       });
       const deleted = song.strokes.length !== beforeCount;
-      if (deleted) {
-        redrawCanvasStrokes();
-        saveSingleSongToCloud(activeSongId);
-      }
+      if (deleted) { redrawCanvasStrokes(); saveSingleSongToCloud(activeSongId); }
       return deleted;
     }
 
@@ -1369,6 +1480,7 @@
       renderLyricsPaperOnly();
     }
 
+    /* 연습 캘린더 */
     function populateCalendarSongSelect() {
       const sel = document.getElementById("calSongSelect");
       if (!sel) return;
@@ -1454,8 +1566,6 @@
       if (summaryEl) summaryEl.innerText = `이번 달 연습 기록: 총 ${practicedDaysInMonth}일`;
     }
 
-    let currentDayPracticedFlag = false;
-
     function loadSelectedDateDetail(dateKey, forceOverwriteInputs = true) {
       selectedDateStr = dateKey;
       document.getElementById("selectedDateHeading").innerText = `${dateKey} 연습 로그`;
@@ -1536,6 +1646,7 @@
         .catch((err) => alert("저장 오류: " + err.message));
     }
 
+    /* 오디오 스튜디오 + 세밀한 배속 + A-B 구간반복 */
     function toggleAudioDrawer() { document.getElementById("audioStudioDrawer").classList.toggle("hidden"); }
 
     function switchAudioTab(tab) {
@@ -1588,6 +1699,7 @@
     async function setupToneDspPlayer(audioUrl, labelName) {
       await Tone.start();
       stopDspAudio();
+      clearAbLoop();
       if (tonePlayer) tonePlayer.dispose();
       if (tonePitchShift) tonePitchShift.dispose();
       tonePitchShift = new Tone.PitchShift({ pitch: currentPitchSemitones, windowSize: 0.1, delayTime: 0 }).toDestination();
@@ -1606,22 +1718,16 @@
       dlBtn.classList.remove("hidden");
     }
 
-   function getCurrentDspTime() {
+    function getCurrentDspTime() {
       if (!isDspPlaying) return dspOffset;
       const elapsed = (Tone.now() - dspStartTime) * currentSpeedRate;
       return Math.min(dspDuration, dspOffset + elapsed);
     }
 
-    function fmtSec(s) {
-      return String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(Math.floor(s % 60)).padStart(2, "0");
-    }
-
     function setLoopPointA() {
       if (!tonePlayer || !tonePlayer.loaded) return alert("먼저 음원을 불러와 주세요.");
       loopPointA = getCurrentDspTime();
-      if (loopPointB !== null && loopPointB <= loopPointA) {
-        loopPointB = null;
-      }
+      if (loopPointB !== null && loopPointB <= loopPointA) loopPointB = null;
       updateAbLoopUI();
     }
 
@@ -1629,13 +1735,9 @@
       if (!tonePlayer || !tonePlayer.loaded) return alert("먼저 음원을 불러와 주세요.");
       const cur = getCurrentDspTime();
       if (loopPointA === null) loopPointA = 0;
-      if (cur <= loopPointA + 0.3) {
-        return alert("B 지점은 A 지점보다 뒤로 지정해 주세요.");
-      }
+      if (cur <= loopPointA + 0.3) return alert("B 지점은 A 지점보다 뒤로 지정해 주세요.");
       loopPointB = cur;
       updateAbLoopUI();
-
-      // B 지점 지정 즉시 A 지점으로 돌아가 반복 시작
       if (isDspPlaying) {
         tonePlayer.stop();
         dspOffset = loopPointA;
@@ -1656,7 +1758,6 @@
       const btnB = document.getElementById("btnLoopB");
       const btnClear = document.getElementById("btnLoopClear");
       if (!btnA || !btnB || !btnClear) return;
-
       if (loopPointA !== null) {
         btnA.innerText = "A " + fmtSec(loopPointA);
         btnA.className = "px-2 py-0.5 rounded bg-amber-500 text-slate-950 text-[11px] font-extrabold transition";
@@ -1664,7 +1765,6 @@
         btnA.innerText = "A 지정";
         btnA.className = "px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-amber-300 transition";
       }
-
       if (loopPointB !== null) {
         btnB.innerText = "B " + fmtSec(loopPointB);
         btnB.className = "px-2 py-0.5 rounded bg-emerald-500 text-slate-950 text-[11px] font-extrabold transition";
@@ -1672,8 +1772,14 @@
         btnB.innerText = "B 지정";
         btnB.className = "px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-amber-300 transition";
       }
-
       btnClear.classList.toggle("hidden", loopPointA === null && loopPointB === null);
+    }
+
+    function syncPlayButtons(symbol) {
+      const mainBtn = document.getElementById("dspPlayBtn");
+      const floatBtn = document.getElementById("floatPlayBtn");
+      if (mainBtn) mainBtn.innerText = symbol;
+      if (floatBtn) floatBtn.innerText = symbol;
     }
 
     async function toggleDspPlay() {
@@ -1685,13 +1791,11 @@
         dspStartTime = Tone.now();
         tonePlayer.start(undefined, dspOffset);
         isDspPlaying = true;
-        document.getElementById("dspPlayBtn").innerText = "⏸";
+        syncPlayButtons("⏸");
         clearInterval(dspTimerInterval);
         dspTimerInterval = setInterval(() => {
           const elapsed = (Tone.now() - dspStartTime) * currentSpeedRate;
           const cur = Math.min(dspDuration, dspOffset + elapsed);
-
-          // A-B 구간 반복 체크
           if (loopPointA !== null && loopPointB !== null && cur >= loopPointB) {
             tonePlayer.stop();
             dspOffset = loopPointA;
@@ -1700,7 +1804,6 @@
             updateDspTimeUI(dspOffset, dspDuration);
             return;
           }
-
           updateDspTimeUI(cur, dspDuration);
           if (cur >= dspDuration) stopDspAudio();
         }, 100);
@@ -1714,7 +1817,7 @@
       tonePlayer.stop();
       isDspPlaying = false;
       clearInterval(dspTimerInterval);
-      document.getElementById("dspPlayBtn").innerText = "▶";
+      syncPlayButtons("▶");
     }
 
     function stopDspAudio() {
@@ -1722,7 +1825,7 @@
       isDspPlaying = false;
       dspOffset = 0;
       clearInterval(dspTimerInterval);
-      document.getElementById("dspPlayBtn").innerText = "▶";
+      syncPlayButtons("▶");
       updateDspTimeUI(0, dspDuration);
     }
 
@@ -1733,467 +1836,4 @@
       if (wasPlaying) tonePlayer.stop();
       dspOffset = targetSec;
       updateDspTimeUI(dspOffset, dspDuration);
-      if (wasPlaying) { dspStartTime = Tone.now(); tonePlayer.start(undefined, dspOffset); }
-    }
-
-    function changeDspSpeed(delta) {
-      const nextRate = Math.round((currentSpeedRate + delta) * 100) / 100;
-      const clamped = Math.max(0.5, Math.min(1.5, nextRate));
-      setDspSpeed(clamped);
-    }
-
-    function setDspSpeed(rate) {
-      const wasPlaying = isDspPlaying;
-      if (wasPlaying) pauseDspAudio();
-      currentSpeedRate = Math.round(rate * 100) / 100;
-      if (tonePlayer) tonePlayer.playbackRate = currentSpeedRate;
-
-      const lbl = document.getElementById("dspSpeedLabel");
-      if (lbl) lbl.innerText = currentSpeedRate.toFixed(2) + "x";
-
-      [0.85, 0.9, 0.95, 1.0].forEach((r) => {
-        const btn = document.getElementById(r === 1.0 ? "spd-1" : "spd-" + r);
-        if (btn) {
-          btn.className = (Math.abs(currentSpeedRate - r) < 0.001)
-            ? "px-1.5 py-0.5 rounded text-[11px] font-extrabold bg-violet-600 text-white"
-            : "px-1.5 py-0.5 rounded text-[11px] font-bold text-slate-300 hover:bg-slate-800";
-        }
-      });
-      if (wasPlaying) toggleDspPlay();
-    }
-
-    function changeDspPitch(delta, reset = false) {
-      if (reset) currentPitchSemitones = 0;
-      else currentPitchSemitones = Math.max(-6, Math.min(6, currentPitchSemitones + delta));
-      if (tonePitchShift) tonePitchShift.pitch = currentPitchSemitones;
-      const lbl = document.getElementById("dspPitchLabel");
-      if (currentPitchSemitones === 0) lbl.innerText = "원키(0)";
-      else if (currentPitchSemitones > 0) lbl.innerText = `+${currentPitchSemitones}키 (♯)`;
-      else lbl.innerText = `${currentPitchSemitones}키 (♭)`;
-    }
-
-    function updateDspTimeUI(cur, total) {
-      const fmt = (s) => String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(Math.floor(s % 60)).padStart(2, "0");
-      document.getElementById("dspTimeLabel").innerText = `${fmt(cur)} / ${fmt(total || 0)}`;
-      const slider = document.getElementById("dspSeekSlider");
-      if (total > 0) slider.value = (cur / total) * 100;
-    }
-
-    async function toggleMicRecording() {
-      const btn = document.getElementById("micRecordBtn");
-      const timerEl = document.getElementById("recordingTimer");
-      if (!isRecording) {
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          recordedChunks = [];
-          mediaRecorder = new MediaRecorder(stream);
-          mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
-          mediaRecorder.onstop = async () => {
-            const blob = new Blob(recordedChunks, { type: "audio/webm" });
-            await setupToneDspPlayer(URL.createObjectURL(blob), "마이크 연습 녹음본");
-            stream.getTracks().forEach(t => t.stop());
-          };
-          mediaRecorder.start();
-          isRecording = true; recSeconds = 0;
-          btn.innerText = "⏹️ 녹음 완료 및 플레이어 로드";
-          btn.className = "px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-xl text-xs font-extrabold transition flex items-center gap-1.5";
-          timerEl.classList.remove("hidden");
-          recTimerInterval = setInterval(() => {
-            recSeconds++;
-            timerEl.innerText = `● 녹음 중 ${String(Math.floor(recSeconds / 60)).padStart(2, "0")}:${String(recSeconds % 60).padStart(2, "0")}`;
-          }, 1000);
-        } catch (err) { alert("마이크 권한을 허용해 주세요: " + err.message); }
-      } else {
-        mediaRecorder.stop(); isRecording = false; clearInterval(recTimerInterval);
-        timerEl.classList.add("hidden");
-        btn.innerText = "🔴 지금 마이크로 연습 녹음 시작";
-        btn.className = "px-4 py-2 bg-rose-600 hover:bg-rose-500 rounded-xl text-xs font-extrabold transition flex items-center gap-1.5";
-      }
-    }
-
-    let isEditingExistingSong = false;
-
-    function openSongModal(editMode = false) {
-      if (isReadonly) return alert("잠금 상태입니다.");
-      isEditingExistingSong = editMode;
-      const modal = document.getElementById("songModal");
-      modal.classList.remove("hidden");
-      modal.classList.add("flex");
-      document.getElementById("modalParseMode").value = "auto";
-
-      if (editMode && songsMap[activeSongId]) {
-        const song = songsMap[activeSongId];
-        document.getElementById("songModalTitle").innerText = "✏️ 곡 / 가수 / MR / 완성도 / 가사 수정";
-        document.getElementById("modalTitleInput").value = song.title || "";
-        document.getElementById("modalArtistInput").value = song.artist || "";
-        document.getElementById("modalCatInput").value = song.category || "J-POP";
-        document.getElementById("modalKeyInput").value = song.keyInfo || "";
-        document.getElementById("modalTipInput").value = song.vocalTip || "";
-        document.getElementById("modalHasMrInput").checked = !!song.hasMr;
-        const cVal = Number(song.completion) || 0;
-        document.getElementById("modalCompletionInput").value = cVal;
-        document.getElementById("modalCompletionVal").innerText = cVal + "%";
-
-        const rawBlocks = (song.stanzas || []).map((st) => {
-          const lines = [st.orig || ""];
-          if (st.pron) lines.push(st.pron);
-          if (st.trans) lines.push(st.trans);
-          if (st.furi && st.furi !== st.orig) lines.push(st.furi);
-          return lines.join("\n");
-        }).join("\n\n");
-        document.getElementById("modalLyricsInput").value = rawBlocks;
-      } else {
-        document.getElementById("songModalTitle").innerText = "🎵 새 연습곡 추가";
-        document.getElementById("modalTitleInput").value = "";
-        document.getElementById("modalArtistInput").value = "";
-        document.getElementById("modalCatInput").value = "J-POP";
-        document.getElementById("modalKeyInput").value = "";
-        document.getElementById("modalTipInput").value = "";
-        document.getElementById("modalHasMrInput").checked = false;
-        document.getElementById("modalCompletionInput").value = 0;
-        document.getElementById("modalCompletionVal").innerText = "0%";
-        document.getElementById("modalLyricsInput").value = "";
-      }
-      updateLiveParsePreview();
-    }
-
-    function closeSongModal() {
-      const modal = document.getElementById("songModal");
-      modal.classList.add("hidden");
-      modal.classList.remove("flex");
-    }
-
-    function saveSongFromModal() {
-      const title = document.getElementById("modalTitleInput").value.trim();
-      const artist = document.getElementById("modalArtistInput").value.trim();
-      const category = document.getElementById("modalCatInput").value;
-      const keyRaw = document.getElementById("modalKeyInput").value.trim();
-      const vocalTip = document.getElementById("modalTipInput").value.trim();
-      const hasMr = document.getElementById("modalHasMrInput").checked;
-      const completion = parseInt(document.getElementById("modalCompletionInput").value, 10) || 0;
-      const lyricsRaw = document.getElementById("modalLyricsInput").value.trim();
-      const parseMode = document.getElementById("modalParseMode").value;
-      if (!title || !artist) return alert("곡 제목과 가수를 입력해 주세요.");
-
-      const stanzas = smartParseLyricsText(lyricsRaw, parseMode);
-      const songId = isEditingExistingSong ? activeSongId : ("song_" + Date.now());
-      const existing = songsMap[songId] || {};
-
-      songsMap[songId] = {
-        ...existing,
-        id: songId,
-        title,
-        artist,
-        category,
-        keyInfo: keyRaw,
-        tjKy: existing.tjKy || "",
-        vocalTip,
-        hasMr,
-        completion,
-        stanzas
-      };
-
-      activeSongId = songId;
-      closeSongModal();
-      renderSidebarSongs();
-      renderActiveSongWorkspace(false);
-      populateCalendarSongSelect();
-      updateArtistDatalist();
-      saveSingleSongToCloud(songId);
-    }
-
-    function deleteActiveSong() {
-      if (isReadonly) return alert("잠금 상태입니다.");
-      const song = songsMap[activeSongId];
-      if (!song) return;
-      if (!confirm(`'${song.title}' 곡을 삭제할까요?`)) return;
-      const delId = activeSongId;
-      delete songsMap[delId];
-      rtdb.ref("vocal_studio_v3/songs/" + delId).remove();
-      const remainingIds = Object.keys(songsMap);
-      activeSongId = remainingIds[0] || "";
-      renderSidebarSongs();
-      if (activeSongId) renderActiveSongWorkspace(true);
-      populateCalendarSongSelect();
-    }
-
-    let memoTimeout = null;
-    function debounceSaveMemo() {
-      if (isReadonly) return;
-      const song = songsMap[activeSongId];
-      if (!song) return;
-      song.memo = document.getElementById("songMemoInput").value;
-      clearTimeout(memoTimeout);
-      memoTimeout = setTimeout(() => saveSingleSongToCloud(activeSongId), 600);
-    }
-
-    function openLockModal() { const m = document.getElementById("lockModal"); m.classList.remove("hidden"); m.classList.add("flex"); }
-    function closeLockModal() { const m = document.getElementById("lockModal"); m.classList.add("hidden"); m.classList.remove("flex"); }
-    function toggleReadonlyWithPin() {
-      const inputPin = document.getElementById("pinCodeInput").value;
-      if (isReadonly && inputPin !== ownerPin) return alert("비밀번호(PIN)가 일치하지 않습니다.");
-      isReadonly = !isReadonly;
-      document.getElementById("pinCodeInput").value = "";
-      updateLockUI();
-      closeLockModal();
-    }
-    function changeOwnerPin() {
-      const np = document.getElementById("newPinInput").value.trim();
-      if (!np) return alert("새 비밀번호를 입력하세요.");
-      ownerPin = np;
-      localStorage.setItem("vocal_owner_pin", np);
-      alert("비밀번호가 변경되었습니다.");
-    }
-    function updateLockUI() {
-      document.getElementById("readonlyBanner").classList.toggle("hidden", !isReadonly);
-      const btn = document.getElementById("lockModeBtn");
-      if (isReadonly) {
-        btn.innerText = "🔒 열람 전용";
-        btn.className = "px-3 py-1.5 rounded-xl text-xs font-extrabold bg-amber-100 text-amber-800 border border-amber-300";
-      } else {
-        btn.innerText = "🔓 편집 가능";
-        btn.className = "px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200";
-      }
-    }
-
-    function openCloudStatusModal() {
-      const m = document.getElementById("cloudModal");
-      m.classList.remove("hidden");
-      m.classList.add("flex");
-      document.getElementById("cloudStatsDetail").innerText = `현재 클라우드에 총 ${Object.keys(songsMap).length}곡의 데이터와 캘린더 기록이 저장되어 있습니다.`;
-    }
-    function closeCloudStatusModal() { const m = document.getElementById("cloudModal"); m.classList.add("hidden"); m.classList.remove("flex"); }
-
-    function exportJsonBackup() {
-      const blob = new Blob([JSON.stringify({ songs: songsMap, calendar: calendarLogsMap }, null, 2)], { type: "application/json" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = `meraki_vocal_backup_${new Date().toISOString().slice(0,10)}.json`;
-      a.click();
-    }
-
-    function importJsonBackup(input) {
-      if (!input.files || !input.files[0]) return;
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const data = JSON.parse(e.target.result);
-          if (data.songs) { songsMap = filterValidSongs(data.songs); rtdb.ref("vocal_studio_v3/songs").set(songsMap); }
-          if (data.calendar) { calendarLogsMap = data.calendar; rtdb.ref("vocal_studio_v3/calendar").set(calendarLogsMap); }
-          renderSidebarSongs();
-          renderActiveSongWorkspace(true);
-          renderCalendarMonth();
-          alert("백업 데이터를 복원했습니다!");
-        } catch (err) {
-          alert("올바른 JSON 백업 파일이 아닙니다.");
-        }
-      };
-      reader.readAsText(input.files[0]);
-    }
-
-    window.addEventListener("DOMContentLoaded", initFirebaseSync);
-  </script>
-  <!-- 스크롤 시 우측에 따라오는 슬림 보컬 리모컨 (가사 안 가림) -->
-  <div id="floatingPracticeDock" class="fixed right-3 top-1/2 -translate-y-1/2 z-40 hidden flex-col items-center gap-2 bg-slate-900/90 backdrop-blur-md text-white p-2 rounded-2xl shadow-xl border border-slate-700/80 w-[84px]">
-    <!-- 곡 재생 / 일시정지 -->
-    <button onclick="toggleDspPlay()" id="floatPlayBtn" title="재생 / 일시정지" class="w-full py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-black text-base shadow transition flex items-center justify-center">
-      ▶
-    </button>
-
-    <!-- 곡 속도 조절 -->
-    <div class="w-full bg-slate-800/90 rounded-xl p-1.5 flex flex-col items-center gap-1 border border-slate-700">
-      <span class="text-[10px] font-bold text-slate-400">속도</span>
-      <span id="floatSpeedLabel" class="text-xs font-extrabold text-violet-300">1.00x</span>
-      <div class="grid grid-cols-2 gap-1 w-full">
-        <button onclick="changeDspSpeed(-0.05)" class="py-1 rounded-lg bg-slate-700 hover:bg-slate-600 text-xs font-black text-sky-300">-</button>
-        <button onclick="changeDspSpeed(0.05)" class="py-1 rounded-lg bg-slate-700 hover:bg-slate-600 text-xs font-black text-rose-300">+</button>
-      </div>
-    </div>
-
-    <!-- 가사 수정 -->
-    <button onclick="openSongModal(true)" class="w-full py-2 rounded-xl bg-slate-800 hover:bg-violet-600 text-[11px] font-extrabold text-slate-200 border border-slate-700 transition">
-      ✏️ 가사수정
-    </button>
-
-    <!-- 맨 위로 -->
-    <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="w-full py-1 rounded-lg text-[10px] font-bold text-slate-400 hover:text-white transition">
-      ▲ 위로
-    </button>
-  </div>
-
-  <script>
-    (function initFloatingPracticeDock() {
-      const dock = document.getElementById("floatingPracticeDock");
-      const mainPlayBtn = document.getElementById("dspPlayBtn");
-      const floatPlayBtn = document.getElementById("floatPlayBtn");
-      const mainSpeedLbl = document.getElementById("dspSpeedLabel");
-      const floatSpeedLbl = document.getElementById("floatSpeedLabel");
-
-      function updateDockVisibility() {
-        const studioEl = document.getElementById("studioPageContainer");
-        const isStudioVisible = studioEl && !studioEl.classList.contains("hidden");
-        if (isStudioVisible && window.scrollY > 280) {
-          dock.classList.remove("hidden");
-          dock.classList.add("flex");
-        } else {
-          dock.classList.add("hidden");
-          dock.classList.remove("flex");
-        }
-      }
-
-      // 메인 재생 버튼 및 배속 라벨 변경을 플로팅 리모컨에 자동 동기화
-      function syncDockLabels() {
-        if (mainPlayBtn && floatPlayBtn) floatPlayBtn.innerText = mainPlayBtn.innerText;
-        if (floatSpeedLbl) {
-          floatSpeedLbl.innerText = mainSpeedLbl ? mainSpeedLbl.innerText : (currentSpeedRate.toFixed(2) + "x");
-        }
-      }
-
-      if (mainPlayBtn) {
-        new MutationObserver(syncDockLabels).observe(mainPlayBtn, { childList: true, characterData: true, subtree: true });
-      }
-      if (mainSpeedLbl) {
-        new MutationObserver(syncDockLabels).observe(mainSpeedLbl, { childList: true, characterData: true, subtree: true });
-      }
-
-      window.addEventListener("scroll", updateDockVisibility, { passive: true });
-      window.addEventListener("load", () => { syncDockLabels(); updateDockVisibility(); });
-    })();
-  </script>
-  <!-- 화면 절반 크기 가사 공부 메모장 (PC: 우측 반 / 모바일: 하단 반) -->
-  <div id="studyDrawer" class="fixed bottom-0 right-0 w-full h-[55vh] md:top-0 md:h-full md:w-1/2 bg-white border-t-2 md:border-t-0 md:border-l-2 border-blue-200 shadow-2xl z-50 hidden flex-col">
-    <!-- 상단 바 -->
-    <div class="px-5 py-3.5 bg-blue-600 text-white flex items-center justify-between gap-2 flex-shrink-0">
-      <div class="flex items-center gap-2">
-        <span class="text-base font-black">📘 가사 단어 · 문법 공부 노트</span>
-        <span id="studyStanzaBadge" class="text-xs font-bold bg-blue-500 px-2 py-0.5 rounded-full">1 / 1</span>
-      </div>
-      <div class="flex items-center gap-1.5">
-        <button onclick="moveStudyStanza(-1)" class="px-2.5 py-1 rounded-lg bg-blue-500 hover:bg-blue-400 text-xs font-extrabold transition">◀ 이전 줄</button>
-        <button onclick="moveStudyStanza(1)" class="px-2.5 py-1 rounded-lg bg-blue-500 hover:bg-blue-400 text-xs font-extrabold transition">다음 줄 ▶</button>
-        <button onclick="closeStudyDrawer()" class="ml-1 w-7 h-7 rounded-lg bg-blue-700 hover:bg-blue-800 text-sm font-black transition">✕</button>
-      </div>
-    </div>
-
-    <!-- 본문 스크롤 영역 -->
-    <div class="flex-1 overflow-y-auto p-5 space-y-4">
-      <!-- 현재 공부 중인 가사 구절 요약 -->
-      <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-1.5">
-        <div id="studyOrigText" class="text-lg font-black text-slate-900"></div>
-        <div id="studyPronText" class="text-sm font-semibold text-slate-600"></div>
-        <div id="studyTransText" class="text-sm font-bold text-violet-600"></div>
-      </div>
-
-      <!-- 히라가나(후리가나) 입력칸 -->
-      <div>
-        <div class="flex items-center justify-between mb-1">
-          <label class="text-xs font-extrabold text-blue-700">あ 히라가나 (후리가나) 정리</label>
-          <span class="text-[11px] text-slate-400">입력하면 '후리가나만 보기' 탭에도 자동 반영됩니다</span>
-        </div>
-        <input type="text" id="studyFuriInput" oninput="debounceSaveStudyNote()" placeholder="예: はりさける ほどの こえが かぜに ながれても"
-          class="w-full px-3.5 py-2.5 text-sm font-bold bg-blue-50/40 border border-blue-200 rounded-xl text-slate-900 focus:outline-none focus:bg-white focus:border-blue-500">
-      </div>
-
-      <!-- 단어 정리 메모 -->
-      <div>
-        <label class="block text-xs font-extrabold text-slate-700 mb-1">📖 단어 정리 (한자 · 히라가나 · 뜻)</label>
-        <textarea id="studyVocabInput" oninput="debounceSaveStudyNote()" rows="5" placeholder="예:&#10;・張り裂ける (はりさける) : 찢어지다, 터질 듯하다&#10;・声 (こえ) : 목소리&#10;・流れる (ながれる) : 흐르다, 떠내려가다"
-          class="w-full px-3.5 py-3 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-800 leading-relaxed focus:outline-none focus:bg-white focus:border-blue-500"></textarea>
-      </div>
-
-      <!-- 문법 및 표현 메모 -->
-      <div>
-        <label class="block text-xs font-extrabold text-slate-700 mb-1">📝 문법 · 표현 포인트</label>
-        <textarea id="studyGrammarInput" oninput="debounceSaveStudyNote()" rows="5" placeholder="예:&#10;・~ほどの : ~할 정도의 (정도 강조)&#10;・~ても : ~해도 (역접 조건, 流れる → 流れても)"
-          class="w-full px-3.5 py-3 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-800 leading-relaxed focus:outline-none focus:bg-white focus:border-blue-500"></textarea>
-      </div>
-    </div>
-
-    <!-- 하단 상태 바 -->
-    <div class="px-5 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between flex-shrink-0">
-      <span id="studySaveStatus" class="text-xs font-bold text-slate-400">입력 시 클라우드에 자동 저장됩니다</span>
-      <button onclick="saveStudyNoteNow()" class="px-4 py-2 rounded-xl text-xs font-extrabold bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition">
-        💾 저장 완료
-      </button>
-    </div>
-  </div>
-
-  <script>
-    let activeStudyStanzaIdx = 0;
-    let studySaveTimer = null;
-
-    function openStudyDrawer(sIdx, ev) {
-      if (ev) ev.stopPropagation();
-      const song = songsMap[activeSongId];
-      if (!song || !song.stanzas || !song.stanzas[sIdx]) return;
-
-      activeStudyStanzaIdx = sIdx;
-      const stanza = song.stanzas[sIdx];
-      const note = (song.studyNotes && song.studyNotes[sIdx]) || { vocab: "", grammar: "" };
-
-      document.getElementById("studyStanzaBadge").innerText = `${sIdx + 1} / ${song.stanzas.length}구절`;
-      document.getElementById("studyOrigText").innerText = stanza.orig || "";
-      document.getElementById("studyPronText").innerText = stanza.pron || "";
-      document.getElementById("studyTransText").innerText = stanza.trans || "";
-
-      document.getElementById("studyFuriInput").value = (stanza.furi && stanza.furi !== stanza.orig) ? stanza.furi : (stanza.furi || "");
-      document.getElementById("studyVocabInput").value = note.vocab || "";
-      document.getElementById("studyGrammarInput").value = note.grammar || "";
-      document.getElementById("studySaveStatus").innerText = isReadonly ? "🔒 열람 전용 모드 (수정 불가)" : "입력 시 클라우드에 자동 저장됩니다";
-
-      const drawer = document.getElementById("studyDrawer");
-      drawer.classList.remove("hidden");
-      drawer.classList.add("flex");
-    }
-
-    function closeStudyDrawer() {
-      const drawer = document.getElementById("studyDrawer");
-      drawer.classList.add("hidden");
-      drawer.classList.remove("flex");
-    }
-
-    function moveStudyStanza(delta) {
-      const song = songsMap[activeSongId];
-      if (!song || !song.stanzas) return;
-      const nextIdx = activeStudyStanzaIdx + delta;
-      if (nextIdx >= 0 && nextIdx < song.stanzas.length) {
-        openStudyDrawer(nextIdx);
-      }
-    }
-
-    function debounceSaveStudyNote() {
-      if (isReadonly) return;
-      document.getElementById("studySaveStatus").innerText = "⏳ 저장 중...";
-      clearTimeout(studySaveTimer);
-      studySaveTimer = setTimeout(saveStudyNoteNow, 500);
-    }
-
-    function saveStudyNoteNow() {
-      if (isReadonly) return alert("현재 열람 전용(잠금) 상태입니다.");
-      const song = songsMap[activeSongId];
-      if (!song || !song.stanzas || !song.stanzas[activeStudyStanzaIdx]) return;
-
-      const furiVal = document.getElementById("studyFuriInput").value.trim();
-      const vocabVal = document.getElementById("studyVocabInput").value;
-      const grammarVal = document.getElementById("studyGrammarInput").value;
-
-      // 히라가나 입력값은 해당 구절의 furi에도 바로 연동
-      if (furiVal) {
-        song.stanzas[activeStudyStanzaIdx].furi = furiVal;
-      }
-
-      if (!song.studyNotes) song.studyNotes = {};
-      song.studyNotes[activeStudyStanzaIdx] = {
-        vocab: vocabVal,
-        grammar: grammarVal,
-        updatedAt: Date.now()
-      };
-
-      renderLyricsPaperOnly();
-      saveSingleSongToCloud(activeSongId);
-      const now = new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-      document.getElementById("studySaveStatus").innerText = `☁️ 저장 완료 (${now})`;
-    }
-  </script>
-</body>
-</html>
+      if (wasPlaying) { dspStartTime = Tone.
