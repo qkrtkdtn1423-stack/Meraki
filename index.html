@@ -1970,5 +1970,72 @@
 
     window.addEventListener("DOMContentLoaded", initFirebaseSync);
   </script>
+  <!-- 스크롤 시 우측에 따라오는 슬림 보컬 리모컨 (가사 안 가림) -->
+  <div id="floatingPracticeDock" class="fixed right-3 top-1/2 -translate-y-1/2 z-40 hidden flex-col items-center gap-2 bg-slate-900/90 backdrop-blur-md text-white p-2 rounded-2xl shadow-xl border border-slate-700/80 w-[84px]">
+    <!-- 곡 재생 / 일시정지 -->
+    <button onclick="toggleDspPlay()" id="floatPlayBtn" title="재생 / 일시정지" class="w-full py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-black text-base shadow transition flex items-center justify-center">
+      ▶
+    </button>
+
+    <!-- 곡 속도 조절 -->
+    <div class="w-full bg-slate-800/90 rounded-xl p-1.5 flex flex-col items-center gap-1 border border-slate-700">
+      <span class="text-[10px] font-bold text-slate-400">속도</span>
+      <span id="floatSpeedLabel" class="text-xs font-extrabold text-violet-300">1.00x</span>
+      <div class="grid grid-cols-2 gap-1 w-full">
+        <button onclick="changeDspSpeed(-0.05)" class="py-1 rounded-lg bg-slate-700 hover:bg-slate-600 text-xs font-black text-sky-300">-</button>
+        <button onclick="changeDspSpeed(0.05)" class="py-1 rounded-lg bg-slate-700 hover:bg-slate-600 text-xs font-black text-rose-300">+</button>
+      </div>
+    </div>
+
+    <!-- 가사 수정 -->
+    <button onclick="openSongModal(true)" class="w-full py-2 rounded-xl bg-slate-800 hover:bg-violet-600 text-[11px] font-extrabold text-slate-200 border border-slate-700 transition">
+      ✏️ 가사수정
+    </button>
+
+    <!-- 맨 위로 -->
+    <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="w-full py-1 rounded-lg text-[10px] font-bold text-slate-400 hover:text-white transition">
+      ▲ 위로
+    </button>
+  </div>
+
+  <script>
+    (function initFloatingPracticeDock() {
+      const dock = document.getElementById("floatingPracticeDock");
+      const mainPlayBtn = document.getElementById("dspPlayBtn");
+      const floatPlayBtn = document.getElementById("floatPlayBtn");
+      const mainSpeedLbl = document.getElementById("dspSpeedLabel");
+      const floatSpeedLbl = document.getElementById("floatSpeedLabel");
+
+      function updateDockVisibility() {
+        const studioEl = document.getElementById("studioPageContainer");
+        const isStudioVisible = studioEl && !studioEl.classList.contains("hidden");
+        if (isStudioVisible && window.scrollY > 280) {
+          dock.classList.remove("hidden");
+          dock.classList.add("flex");
+        } else {
+          dock.classList.add("hidden");
+          dock.classList.remove("flex");
+        }
+      }
+
+      // 메인 재생 버튼 및 배속 라벨 변경을 플로팅 리모컨에 자동 동기화
+      function syncDockLabels() {
+        if (mainPlayBtn && floatPlayBtn) floatPlayBtn.innerText = mainPlayBtn.innerText;
+        if (floatSpeedLbl) {
+          floatSpeedLbl.innerText = mainSpeedLbl ? mainSpeedLbl.innerText : (currentSpeedRate.toFixed(2) + "x");
+        }
+      }
+
+      if (mainPlayBtn) {
+        new MutationObserver(syncDockLabels).observe(mainPlayBtn, { childList: true, characterData: true, subtree: true });
+      }
+      if (mainSpeedLbl) {
+        new MutationObserver(syncDockLabels).observe(mainSpeedLbl, { childList: true, characterData: true, subtree: true });
+      }
+
+      window.addEventListener("scroll", updateDockVisibility, { passive: true });
+      window.addEventListener("load", () => { syncDockLabels(); updateDockVisibility(); });
+    })();
+  </script>
 </body>
 </html>
