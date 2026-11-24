@@ -91,7 +91,6 @@
   <!-- 페이지 1: 가사 & 보컬 연습 스튜디오 -->
   <div id="studioPageContainer" class="max-w-7xl w-full mx-auto flex-1 flex flex-col lg:flex-row gap-5 p-4">
     <aside class="w-full lg:w-76 xl:w-80 flex-shrink-0 flex flex-col gap-3">
-      <!-- 카테고리 탭 -->
       <div class="bg-white p-1.5 rounded-2xl border border-slate-200 shadow-sm grid grid-cols-5 gap-1">
         <button onclick="selectCategory('ALL')" id="cat-ALL" class="cat-tab py-2 rounded-xl text-[11px] font-extrabold bg-violet-600 text-white transition">전체</button>
         <button onclick="selectCategory('FAV')" id="cat-FAV" class="cat-tab py-2 rounded-xl text-[11px] font-bold text-amber-600 hover:bg-amber-50 transition">⭐즐겨</button>
@@ -100,14 +99,12 @@
         <button onclick="selectCategory('POP')" id="cat-POP" class="cat-tab py-2 rounded-xl text-[11px] font-bold text-slate-600 hover:bg-slate-100 transition">POP</button>
       </div>
 
-      <!-- 곡 목록 박스 -->
       <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-3 flex-1 flex flex-col max-h-[420px] lg:max-h-[calc(100vh-175px)]">
         <div class="flex items-center justify-between px-1 pb-2 border-b border-slate-100">
           <span class="text-xs font-extrabold text-slate-600" id="songCountLabel">연습곡 목록 (0곡)</span>
           <button onclick="forceSyncFromFirebase()" class="text-[11px] font-bold text-violet-600 hover:underline">🔄 새로고침</button>
         </div>
 
-        <!-- 정렬 바 -->
         <div class="grid grid-cols-4 gap-1 py-2 mb-1 border-b border-slate-100">
           <button onclick="setSortMode('artist')" id="sort-artist" class="py-1 rounded-lg text-[11px] font-extrabold bg-violet-100 text-violet-700 border border-violet-200 transition">🎤 가수별</button>
           <button onclick="setSortMode('default')" id="sort-default" class="py-1 rounded-lg text-[11px] font-bold bg-slate-50 text-slate-600 hover:bg-slate-100 transition">기본순</button>
@@ -120,7 +117,6 @@
     </aside>
 
     <main class="flex-1 flex flex-col gap-4 min-w-0">
-      <!-- 곡 헤더 카드 & MR/완성도 퀵 컨트롤 -->
       <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
         <div class="flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -145,7 +141,6 @@
           </div>
         </div>
 
-        <!-- MR 유무 & 완성도(%) 실시간 조절 바 -->
         <div class="mt-3.5 bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3">
           <div class="flex items-center gap-2">
             <span class="text-xs font-extrabold text-slate-600">MR 유무:</span>
@@ -164,7 +159,6 @@
           <p id="activeVocalTip" class="text-xs font-semibold text-violet-950 leading-relaxed flex-1"></p>
         </div>
 
-        <!-- 오디오 스튜디오 패널 -->
         <div id="audioStudioDrawer" class="mt-4 bg-slate-900 text-white rounded-2xl p-4 shadow-inner">
           <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800">
             <div class="flex items-center gap-2">
@@ -222,7 +216,6 @@
               </div>
             </div>
 
-            <!-- 세밀한 배속 조절 (0.05 단위 + 퀵 프리셋) -->
             <div class="flex items-center gap-1.5 bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-700 flex-wrap">
               <span class="text-[11px] text-slate-400 font-bold">배속</span>
               <button onclick="changeDspSpeed(-0.05)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-xs font-black text-sky-300">-</button>
@@ -236,7 +229,6 @@
               </div>
             </div>
 
-            <!-- 음원 피치 조절 -->
             <div class="flex items-center gap-1.5 bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-700">
               <span class="text-[11px] text-slate-400 font-bold">음원 키</span>
               <button onclick="changeDspPitch(-1)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-xs font-black text-sky-300">♭</button>
@@ -245,7 +237,6 @@
               <button onclick="changeDspPitch(0, true)" class="text-[11px] text-slate-400 hover:text-white ml-1 underline">리셋</button>
             </div>
 
-            <!-- A-B 구간 반복 컨트롤 -->
             <div class="flex items-center gap-1.5 bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-700">
               <span class="text-[11px] text-slate-400 font-bold">구간반복</span>
               <button onclick="setLoopPointA()" id="btnLoopA" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-amber-300 transition">A 지정</button>
@@ -258,7 +249,7 @@
         </div>
       </section>
 
-      <!-- 곡별 자유 보컬 피드백 노트 (맨 위 배치) -->
+      <!-- 곡별 자유 보컬 피드백 노트 (상단 배치) -->
       <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
         <div class="flex items-center justify-between mb-2">
           <h3 class="text-sm font-extrabold text-slate-800">📝 내 보컬 레슨 피드백 & 연습 메모</h3>
@@ -267,7 +258,6 @@
         <textarea id="songMemoInput" oninput="debounceSaveMemo()" rows="3" placeholder="이 곡을 연습하면서 느낀 점, 보컬 레슨 피드백, 목 열기 / 연구개 / 복압 포인트 등을 자유롭게 적어두세요..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm text-slate-800 focus:outline-none focus:bg-white focus:border-violet-500"></textarea>
       </section>
 
-      <!-- 가사 보기 모드 탭 -->
       <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-3 flex flex-wrap items-center justify-between gap-2">
         <div class="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1.5 rounded-xl">
           <button onclick="setLyricViewMode('3tier')" id="vmode-3tier" class="vmode-btn px-3 py-1.5 rounded-lg text-xs font-extrabold bg-white text-violet-700 shadow-sm transition">기본 3단 가사 (원문·한국어발음·해석)</button>
@@ -281,7 +271,6 @@
         </div>
       </section>
 
-      <!-- 필기 도구 바 -->
       <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-3 flex flex-col gap-2.5 sticky top-[68px] z-30">
         <div class="flex flex-wrap items-center justify-between gap-2">
           <div class="flex flex-wrap items-center gap-1.5">
@@ -328,7 +317,6 @@
         </div>
       </section>
 
-      <!-- 가사 본문 -->
       <section class="bg-white rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden min-h-[540px]">
         <canvas id="drawingCanvas" class="canvas-passthrough"></canvas>
         <div id="lyricsPaper" class="p-8 md:p-12 max-w-3xl mx-auto text-center space-y-9 relative z-10"></div>
@@ -1836,4 +1824,279 @@
       if (wasPlaying) tonePlayer.stop();
       dspOffset = targetSec;
       updateDspTimeUI(dspOffset, dspDuration);
-      if (wasPlaying) { dspStartTime = Tone.
+      if (wasPlaying) { dspStartTime = Tone.now(); tonePlayer.start(undefined, dspOffset); }
+    }
+
+    function changeDspSpeed(delta) {
+      const nextRate = Math.round((currentSpeedRate + delta) * 100) / 100;
+      setDspSpeed(Math.max(0.5, Math.min(1.5, nextRate)));
+    }
+
+    function setDspSpeed(rate) {
+      const wasPlaying = isDspPlaying;
+      if (wasPlaying) pauseDspAudio();
+      currentSpeedRate = Math.round(rate * 100) / 100;
+      if (tonePlayer) tonePlayer.playbackRate = currentSpeedRate;
+
+      const textVal = currentSpeedRate.toFixed(2) + "x";
+      const mainLbl = document.getElementById("dspSpeedLabel");
+      const floatLbl = document.getElementById("floatSpeedLabel");
+      if (mainLbl) mainLbl.innerText = textVal;
+      if (floatLbl) floatLbl.innerText = textVal;
+
+      [0.85, 0.9, 0.95, 1.0].forEach((r) => {
+        const btn = document.getElementById(r === 1.0 ? "spd-1" : "spd-" + r);
+        if (btn) {
+          btn.className = (Math.abs(currentSpeedRate - r) < 0.001)
+            ? "px-1.5 py-0.5 rounded text-[11px] font-extrabold bg-violet-600 text-white"
+            : "px-1.5 py-0.5 rounded text-[11px] font-bold text-slate-300 hover:bg-slate-800";
+        }
+      });
+      if (wasPlaying) toggleDspPlay();
+    }
+
+    function changeDspPitch(delta, reset = false) {
+      if (reset) currentPitchSemitones = 0;
+      else currentPitchSemitones = Math.max(-6, Math.min(6, currentPitchSemitones + delta));
+      if (tonePitchShift) tonePitchShift.pitch = currentPitchSemitones;
+      const lbl = document.getElementById("dspPitchLabel");
+      if (currentPitchSemitones === 0) lbl.innerText = "원키(0)";
+      else if (currentPitchSemitones > 0) lbl.innerText = `+${currentPitchSemitones}키 (♯)`;
+      else lbl.innerText = `${currentPitchSemitones}키 (♭)`;
+    }
+
+    function updateDspTimeUI(cur, total) {
+      document.getElementById("dspTimeLabel").innerText = `${fmtSec(cur)} / ${fmtSec(total || 0)}`;
+      const slider = document.getElementById("dspSeekSlider");
+      if (total > 0) slider.value = (cur / total) * 100;
+    }
+
+    async function toggleMicRecording() {
+      const btn = document.getElementById("micRecordBtn");
+      const timerEl = document.getElementById("recordingTimer");
+      if (!isRecording) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          recordedChunks = [];
+          mediaRecorder = new MediaRecorder(stream);
+          mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
+          mediaRecorder.onstop = async () => {
+            const blob = new Blob(recordedChunks, { type: "audio/webm" });
+            await setupToneDspPlayer(URL.createObjectURL(blob), "마이크 연습 녹음본");
+            stream.getTracks().forEach(t => t.stop());
+          };
+          mediaRecorder.start();
+          isRecording = true; recSeconds = 0;
+          btn.innerText = "⏹️ 녹음 완료 및 플레이어 로드";
+          btn.className = "px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-xl text-xs font-extrabold transition flex items-center gap-1.5";
+          timerEl.classList.remove("hidden");
+          recTimerInterval = setInterval(() => {
+            recSeconds++;
+            timerEl.innerText = `● 녹음 중 ${fmtSec(recSeconds)}`;
+          }, 1000);
+        } catch (err) { alert("마이크 권한을 허용해 주세요: " + err.message); }
+      } else {
+        mediaRecorder.stop(); isRecording = false; clearInterval(recTimerInterval);
+        timerEl.classList.add("hidden");
+        btn.innerText = "🔴 지금 마이크로 연습 녹음 시작";
+        btn.className = "px-4 py-2 bg-rose-600 hover:bg-rose-500 rounded-xl text-xs font-extrabold transition flex items-center gap-1.5";
+      }
+    }
+
+    /* 우측 플로팅 리모컨 표시 제어 */
+    function updateFloatingDockVisibility() {
+      const dock = document.getElementById("floatingPracticeDock");
+      const studioEl = document.getElementById("studioPageContainer");
+      const isStudioVisible = studioEl && !studioEl.classList.contains("hidden");
+      if (isStudioVisible && window.scrollY > 280) {
+        dock.classList.remove("hidden");
+        dock.classList.add("flex");
+      } else {
+        dock.classList.add("hidden");
+        dock.classList.remove("flex");
+      }
+    }
+    window.addEventListener("scroll", updateFloatingDockVisibility, { passive: true });
+
+    /* 노래 추가/수정/삭제 & 메모 & 잠금 & 백업 */
+    function openSongModal(editMode = false) {
+      if (isReadonly) return alert("잠금 상태입니다.");
+      isEditingExistingSong = editMode;
+      const modal = document.getElementById("songModal");
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+      document.getElementById("modalParseMode").value = "auto";
+
+      if (editMode && songsMap[activeSongId]) {
+        const song = songsMap[activeSongId];
+        document.getElementById("songModalTitle").innerText = "✏️ 곡 / 가수 / MR / 완성도 / 가사 수정";
+        document.getElementById("modalTitleInput").value = song.title || "";
+        document.getElementById("modalArtistInput").value = song.artist || "";
+        document.getElementById("modalCatInput").value = song.category || "J-POP";
+        document.getElementById("modalKeyInput").value = song.keyInfo || "";
+        document.getElementById("modalTipInput").value = song.vocalTip || "";
+        document.getElementById("modalHasMrInput").checked = !!song.hasMr;
+        const cVal = Number(song.completion) || 0;
+        document.getElementById("modalCompletionInput").value = cVal;
+        document.getElementById("modalCompletionVal").innerText = cVal + "%";
+
+        const rawBlocks = (song.stanzas || []).map((st) => {
+          const lines = [st.orig || ""];
+          if (st.pron) lines.push(st.pron);
+          if (st.trans) lines.push(st.trans);
+          if (st.furi && st.furi !== st.orig) lines.push(st.furi);
+          return lines.join("\n");
+        }).join("\n\n");
+        document.getElementById("modalLyricsInput").value = rawBlocks;
+      } else {
+        document.getElementById("songModalTitle").innerText = "🎵 새 연습곡 추가";
+        document.getElementById("modalTitleInput").value = "";
+        document.getElementById("modalArtistInput").value = "";
+        document.getElementById("modalCatInput").value = "J-POP";
+        document.getElementById("modalKeyInput").value = "";
+        document.getElementById("modalTipInput").value = "";
+        document.getElementById("modalHasMrInput").checked = false;
+        document.getElementById("modalCompletionInput").value = 0;
+        document.getElementById("modalCompletionVal").innerText = "0%";
+        document.getElementById("modalLyricsInput").value = "";
+      }
+      updateLiveParsePreview();
+    }
+
+    function closeSongModal() {
+      const modal = document.getElementById("songModal");
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    }
+
+    function saveSongFromModal() {
+      const title = document.getElementById("modalTitleInput").value.trim();
+      const artist = document.getElementById("modalArtistInput").value.trim();
+      const category = document.getElementById("modalCatInput").value;
+      const keyRaw = document.getElementById("modalKeyInput").value.trim();
+      const vocalTip = document.getElementById("modalTipInput").value.trim();
+      const hasMr = document.getElementById("modalHasMrInput").checked;
+      const completion = parseInt(document.getElementById("modalCompletionInput").value, 10) || 0;
+      const lyricsRaw = document.getElementById("modalLyricsInput").value.trim();
+      const parseMode = document.getElementById("modalParseMode").value;
+      if (!title || !artist) return alert("곡 제목과 가수를 입력해 주세요.");
+
+      const stanzas = smartParseLyricsText(lyricsRaw, parseMode);
+      const songId = isEditingExistingSong ? activeSongId : ("song_" + Date.now());
+      const existing = songsMap[songId] || {};
+
+      songsMap[songId] = {
+        ...existing,
+        id: songId,
+        title,
+        artist,
+        category,
+        keyInfo: keyRaw,
+        tjKy: existing.tjKy || "",
+        vocalTip,
+        hasMr,
+        completion,
+        stanzas
+      };
+
+      activeSongId = songId;
+      closeSongModal();
+      renderSidebarSongs();
+      renderActiveSongWorkspace(false);
+      populateCalendarSongSelect();
+      updateArtistDatalist();
+      saveSingleSongToCloud(songId);
+    }
+
+    function deleteActiveSong() {
+      if (isReadonly) return alert("잠금 상태입니다.");
+      const song = songsMap[activeSongId];
+      if (!song) return;
+      if (!confirm(`'${song.title}' 곡을 삭제할까요?`)) return;
+      const delId = activeSongId;
+      delete songsMap[delId];
+      rtdb.ref("vocal_studio_v3/songs/" + delId).remove();
+      const remainingIds = Object.keys(songsMap);
+      activeSongId = remainingIds[0] || "";
+      renderSidebarSongs();
+      if (activeSongId) renderActiveSongWorkspace(true);
+      populateCalendarSongSelect();
+    }
+
+    function debounceSaveMemo() {
+      if (isReadonly) return;
+      const song = songsMap[activeSongId];
+      if (!song) return;
+      song.memo = document.getElementById("songMemoInput").value;
+      clearTimeout(memoTimeout);
+      memoTimeout = setTimeout(() => saveSingleSongToCloud(activeSongId), 600);
+    }
+
+    function openLockModal() { const m = document.getElementById("lockModal"); m.classList.remove("hidden"); m.classList.add("flex"); }
+    function closeLockModal() { const m = document.getElementById("lockModal"); m.classList.add("hidden"); m.classList.remove("flex"); }
+    function toggleReadonlyWithPin() {
+      const inputPin = document.getElementById("pinCodeInput").value;
+      if (isReadonly && inputPin !== ownerPin) return alert("비밀번호(PIN)가 일치하지 않습니다.");
+      isReadonly = !isReadonly;
+      document.getElementById("pinCodeInput").value = "";
+      updateLockUI();
+      closeLockModal();
+    }
+    function changeOwnerPin() {
+      const np = document.getElementById("newPinInput").value.trim();
+      if (!np) return alert("새 비밀번호를 입력하세요.");
+      ownerPin = np;
+      localStorage.setItem("vocal_owner_pin", np);
+      alert("비밀번호가 변경되었습니다.");
+    }
+    function updateLockUI() {
+      document.getElementById("readonlyBanner").classList.toggle("hidden", !isReadonly);
+      const btn = document.getElementById("lockModeBtn");
+      if (isReadonly) {
+        btn.innerText = "🔒 열람 전용";
+        btn.className = "px-3 py-1.5 rounded-xl text-xs font-extrabold bg-amber-100 text-amber-800 border border-amber-300";
+      } else {
+        btn.innerText = "🔓 편집 가능";
+        btn.className = "px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200";
+      }
+    }
+
+    function openCloudStatusModal() {
+      const m = document.getElementById("cloudModal");
+      m.classList.remove("hidden");
+      m.classList.add("flex");
+      document.getElementById("cloudStatsDetail").innerText = `현재 클라우드에 총 ${Object.keys(songsMap).length}곡의 데이터와 캘린더 기록이 저장되어 있습니다.`;
+    }
+    function closeCloudStatusModal() { const m = document.getElementById("cloudModal"); m.classList.add("hidden"); m.classList.remove("flex"); }
+
+    function exportJsonBackup() {
+      const blob = new Blob([JSON.stringify({ songs: songsMap, calendar: calendarLogsMap }, null, 2)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `meraki_vocal_backup_${new Date().toISOString().slice(0,10)}.json`;
+      a.click();
+    }
+
+    function importJsonBackup(input) {
+      if (!input.files || !input.files[0]) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (data.songs) { songsMap = filterValidSongs(data.songs); rtdb.ref("vocal_studio_v3/songs").set(songsMap); }
+          if (data.calendar) { calendarLogsMap = data.calendar; rtdb.ref("vocal_studio_v3/calendar").set(calendarLogsMap); }
+          renderSidebarSongs();
+          renderActiveSongWorkspace(true);
+          renderCalendarMonth();
+          alert("백업 데이터를 복원했습니다!");
+        } catch (err) {
+          alert("올바른 JSON 백업 파일이 아닙니다.");
+        }
+      };
+      reader.readAsText(input.files[0]);
+    }
+
+    window.addEventListener("DOMContentLoaded", initFirebaseSync);
+  </script>
+</body>
+</html>
